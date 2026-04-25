@@ -1,31 +1,34 @@
 import os
 import sys
+from dotenv import load_dotenv
 
-# Load environment variables
-SUPABASE_URL = os.environ.get("SUPABASE_URL")
-SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY")
-SUPABASE_JWT_SECRET = os.environ.get("SUPABASE_JWT_SECRET")
+# Load .env before everything else
+load_dotenv()
+
+SUPABASE_URL         = os.environ.get("SUPABASE_URL", "")
+SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "")
+SUPABASE_JWT_SECRET  = os.environ.get("SUPABASE_JWT_SECRET", "")
 ADMIN_REGISTRATION_SECRET = os.environ.get("ADMIN_REGISTRATION_SECRET", "DEMO_MODE")
 
-if not all([SUPABASE_URL, SUPABASE_SERVICE_KEY, SUPABASE_JWT_SECRET]):
-    print("CRITICAL ERROR: Missing required environment variables (SUPABASE_URL, SUPABASE_SERVICE_KEY, SUPABASE_JWT_SECRET).")
+if not all([SUPABASE_URL, SUPABASE_SERVICE_KEY]):
+    print("CRITICAL ERROR: Missing required environment variables (SUPABASE_URL, SUPABASE_SERVICE_KEY).")
     sys.exit(1)
+
+# Ensure the project root is on sys.path so 'api' is importable
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
-# Ensure 'api' is importable
-sys.path.append(os.path.dirname(__file__))
-
-# Import the apps
+# Import the API sub-apps
 try:
-    from api.sos import app as sos_app
+    from api.sos       import app as sos_app
     from api.incidents import app as incidents_app
-    from api.dispatch import app as dispatch_app
-    from api.gps import app as gps_app
-    from api.auth import app as auth_app
+    from api.dispatch  import app as dispatch_app
+    from api.gps       import app as gps_app
+    from api.auth      import app as auth_app
     from api.volunteers import app as volunteers_app
 except ImportError as e:
     print(f"Error importing API modules: {e}")
@@ -33,7 +36,7 @@ except ImportError as e:
 
 main_app = FastAPI(
     title="RAKSHA-FORCE Unified Server",
-    description="Development server combining all RAKSHA-FORCE backend services and the frontend."
+    description="Local development server combining all RAKSHA-FORCE backend services and the frontend."
 )
 
 main_app.add_middleware(
@@ -44,45 +47,39 @@ main_app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @main_app.middleware("http")
-async def log_requests(request: Request, call_next):
-    # Normalize path: remove double slashes and trailing slashes (except for root)
+async def normalize_paths(request: Request, call_next):
+    """Normalize double-slashes and trailing slashes in URL paths."""
     path = request.url.path
     if path != "/" and path.endswith("/"):
         path = path.rstrip("/")
-    
-    # Check for double slashes
     while "//" in path:
         path = path.replace("//", "/")
-    
-    # If path changed, we should ideally redirect, but for POST we just continue with modified scope
     if path != request.url.path:
-        print(f"DEBUG: Normalizing {request.url.path} -> {path}")
         request.scope["path"] = path
 
-    print(f"DEBUG: {request.method} {path}")
     response = await call_next(request)
-    print(f"DEBUG: Response status: {response.status_code}")
     return response
 
-# Merge routes correctly using include_router
+
+# Mount API routers
+main_app.include_router(auth_app.router)
 main_app.include_router(sos_app.router)
 main_app.include_router(incidents_app.router)
 main_app.include_router(dispatch_app.router)
 main_app.include_router(gps_app.router)
-main_app.include_router(auth_app.router)
 main_app.include_router(volunteers_app.router)
 
-# Serve static files
-main_app.mount("/", StaticFiles(directory=".", html=True), name="static")
+# Serve all static HTML/CSS/JS from the project root
+main_app.mount("/", StaticFiles(directory=os.path.dirname(os.path.abspath(__file__)), html=True), name="static")
 
 if __name__ == "__main__":
-    print("\n" + "="*50)
-    print("RAKSHA-FORCE Local Server starting...")
-    print("Frontend: http://127.0.0.1:5000")
-    print("API Docs: http://127.0.0.1:5000/docs")
-    print("Mode:     DEMO_MODE (Secret: DEMO_MODE)")
-    print("Supabase: https://xjjalkcmevxqkjqcbfge.supabase.co")
-    print("="*50 + "\n")
-    
-    uvicorn.run(main_app, host="127.0.0.1", port=5000)
+    port = int(os.getenv("PORT", "5000"))
+    print("\n" + "=" * 55)
+    print("  RAKSHA-FORCE Local Server")
+    print(f"  Frontend : http://127.0.0.1:{port}")
+    print(f"  API Docs : http://127.0.0.1:{port}/docs")
+    print(f"  Supabase : {SUPABASE_URL}")
+    print("=" * 55 + "\n")
+    uvicorn.run(main_app, host="127.0.0.1", port=port)

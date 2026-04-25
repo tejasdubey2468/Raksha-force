@@ -2451,6 +2451,8 @@
       ['reportSuccess', 'reportError'].forEach(id => document.getElementById(id).classList.remove('show'));
       let lat = null, lng = null;
       try { const p = await new Promise((r, j) => navigator.geolocation.getCurrentPosition(r, j, { timeout: 5000 })); lat = p.coords.latitude; lng = p.coords.longitude; } catch (e) { }
+      // Fallback coordinates if user denies permission or timeout
+      if (!lat || !lng) { lat = 18.5204; lng = 73.8567; }
       try {
         const created = await window.RF.createIncident({
           emergency_type: type, description: desc,

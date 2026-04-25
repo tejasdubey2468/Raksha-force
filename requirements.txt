@@ -8,6 +8,9 @@ mangum==0.19.0            # ASGI adapter for AWS Lambda / Vercel
 # Supabase client
 supabase==2.10.0
 
+# Environment variable loading
+python-dotenv==1.0.1
+
 # JWT validation
 PyJWT==2.10.1
 

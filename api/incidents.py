@@ -204,7 +204,7 @@ async def create_incident(request: Request):
         result = sb.table("incident_reports").insert(record).execute()
     except Exception as e:
         log.error("Incident insert failed", error=str(e))
-        raise HTTPException(status_code=500, detail=db_error_response(e)["error"])
+        raise HTTPException(status_code=500, detail="Database operation failed. Please try again.")
 
     incident = result.data[0] if result.data else {}
     inc_id   = incident.get("id", "unknown")

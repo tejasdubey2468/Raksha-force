@@ -19,3 +19,6 @@ npm-debug.log*
 # Database
 database/*.csv
 database/*.json
+
+# Scratch
+scratch/

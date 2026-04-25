@@ -1147,7 +1147,8 @@
                 DASHBOARD</span>
         </div>
         <div class="topbar-right">
-            <select id="langSwitch" onchange="switchLanguage(this.value)" style="background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.2);font-size:11px;padding:4px 10px;border-radius:4px;cursor:pointer;font-family:'Rajdhani',sans-serif;margin-right:10px;">
+            <select id="langSwitch" onchange="switchLanguage(this.value)"
+                style="background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.2);font-size:11px;padding:4px 10px;border-radius:4px;cursor:pointer;font-family:'Rajdhani',sans-serif;margin-right:10px;">
                 <option value="en">ENGLISH</option>
                 <option value="hi">हिन्दी (Hindi)</option>
                 <option value="mr">मराठी (Marathi)</option>
@@ -1304,7 +1305,8 @@
                             </div>
                             <div class="grid-2" style="gap:10px;">
                                 <div class="form-group"><label class="form-label">Your Name (optional)</label><input
-                                        type="text" class="form-input" id="incName" placeholder="e.g., Ayush Singh"></div>
+                                        type="text" class="form-input" id="incName" placeholder="e.g., Ayush Singh">
+                                </div>
                                 <div class="form-group"><label class="form-label">Phone (optional)</label><input
                                         type="tel" class="form-input" id="incPhone" placeholder="+91"></div>
                             </div>
@@ -1336,7 +1338,8 @@
                         </div>
 
                         <div class="card">
-                            <button class="btn btn-red btn-full" onclick="submitIncident()" id="submitBtn">🚨 SUBMIT EMERGENCY REPORT</button>
+                            <button class="btn btn-red btn-full" onclick="submitIncident()" id="submitBtn">🚨 SUBMIT
+                                EMERGENCY REPORT</button>
                             <div id="submitMsg" style="display:none;margin-top:10px;"></div>
                         </div>
                     </div>
@@ -1485,16 +1488,19 @@
                                 style="display:flex;flex-direction:column;gap:12px;font-size:13px;line-height:1.6;color:var(--muted);">
                                 <div style="padding:12px;background:var(--card2);border-left:3px solid var(--blue);">🔥
                                     <strong style="color:var(--text);">Fire:</strong> Evacuate immediately. Don't use
-                                    elevators. Call 101.</div>
+                                    elevators. Call 101.
+                                </div>
                                 <div style="padding:12px;background:var(--card2);border-left:3px solid var(--green);">🚑
                                     <strong style="color:var(--text);">Medical:</strong> Keep the person calm and warm.
-                                    Don't move if spine injury suspected.</div>
+                                    Don't move if spine injury suspected.
+                                </div>
                                 <div style="padding:12px;background:var(--card2);border-left:3px solid var(--orange);">
                                     🌊 <strong style="color:var(--text);">Flood:</strong> Move to high ground
                                     immediately. Avoid wading through water.</div>
                                 <div style="padding:12px;background:var(--card2);border-left:3px solid var(--amber);">⚡
                                     <strong style="color:var(--text);">Earthquake:</strong> Drop, Cover, Hold on. Stay
-                                    away from windows.</div>
+                                    away from windows.
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1526,10 +1532,12 @@
             </div>
             <div class="form-group">
                 <label class="form-label" data-tr="Upload Evidence / Image">Upload Evidence / Image</label>
-                <input type="file" id="sosImage" class="form-input" accept="image/*" style="font-size:11px;padding:8px;">
+                <input type="file" id="sosImage" class="form-input" accept="image/*"
+                    style="font-size:11px;padding:8px;">
             </div>
-            <div class="form-group"><label class="form-label" data-tr="Brief Description">Brief Description</label><textarea class="form-input"
-                    id="sosDesc" rows="2" placeholder="What is happening?"></textarea></div>
+            <div class="form-group"><label class="form-label" data-tr="Brief Description">Brief
+                    Description</label><textarea class="form-input" id="sosDesc" rows="2"
+                    placeholder="What is happening?"></textarea></div>
             <div style="display:flex;gap:10px;margin-top:4px;">
                 <button class="btn btn-red" style="flex:1;" onclick="triggerSOS()" id="sosBtn">🆘 SEND SOS NOW</button>
                 <button class="btn btn-outline" onclick="closeModal('sosModal')">CANCEL</button>
@@ -1691,7 +1699,7 @@
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById('page-' + name).classList.add('active');
             document.querySelectorAll('.nav-item').forEach(n => { if (n.textContent.trim().toLowerCase().includes(name) || n.getAttribute('onclick')?.includes(name)) n.classList.add('active'); });
-            
+
             if (name === 'myreports') loadMyReports();
             if (name === 'track') {
                 populateTrackDropdown();
@@ -1741,7 +1749,7 @@
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(reportMap);
             addMapMarker(reportMap, userLat, userLng, '📍', 'Your Location');
             loadRealWorldInfrastructure(userLat, userLng, reportMap);
-            
+
             reportMap.on('moveend', () => {
                 const c = reportMap.getCenter();
                 loadRealWorldInfrastructure(c.lat, c.lng, reportMap);
@@ -1759,26 +1767,26 @@
                     data.elements.forEach(el => {
                         if (infraCache.has(el.id)) return;
                         infraCache.add(el.id);
-                        
+
                         const tags = el.tags || {};
                         const type = tags.amenity || tags.emergency;
                         let iconEmoji = '🚑', color = '#3B82F6';
-                        
-                        const phone = tags.phone || tags['contact:phone'] || (type==='police'?'100':type==='fire_station'?'101':'102') + ' / 112';
+
+                        const phone = tags.phone || tags['contact:phone'] || (type === 'police' ? '100' : type === 'fire_station' ? '101' : '102') + ' / 112';
                         const famous = ["Lilavati", "Nanavati", "Kokilaben", "Jaslok", "Breach Candy", "Cooper", "KEM", "Sion", "Nair", "Hinduja", "SevenHills"].some(f => tags.name?.includes(f));
-                        
+
                         if (type === 'fire_station') { iconEmoji = '🚒'; color = '#EF4444'; }
                         else if (type === 'police') { iconEmoji = '🚓'; color = '#1E3A8A'; }
-                        else if (type === 'hospital') { 
-                            iconEmoji = '🏥'; 
+                        else if (type === 'hospital') {
+                            iconEmoji = '🏥';
                             color = famous ? '#D4A017' : '#10B981';
                         }
-                        
+
                         const icon = L.divIcon({
-                            html: `<div style="width:${famous?28:24}px;height:${famous?28:24}px;background:${color};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:${famous?14:12}px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);">${iconEmoji}</div>`,
-                            className: '', iconAnchor: [famous?14:12, famous?14:12]
+                            html: `<div style="width:${famous ? 28 : 24}px;height:${famous ? 28 : 24}px;background:${color};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:${famous ? 14 : 12}px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);">${iconEmoji}</div>`,
+                            className: '', iconAnchor: [famous ? 14 : 12, famous ? 14 : 12]
                         });
-                        L.marker([el.lat, el.lon], { icon }).addTo(map).bindPopup(`<div style="font-family:'Rajdhani',sans-serif;"><b style="color:${color}">${tags.name || 'Emergency Unit'}</b>${famous?' <span style="font-size:9px;background:var(--amber);color:black;padding:1px 4px;border-radius:2px;">FAMOUS</span>':''}<br><small>${type.replace('_', ' ').toUpperCase()}</small><br><div style="margin-top:5px;font-weight:700;color:var(--red);">📞 ${phone}</div></div>`);
+                        L.marker([el.lat, el.lon], { icon }).addTo(map).bindPopup(`<div style="font-family:'Rajdhani',sans-serif;"><b style="color:${color}">${tags.name || 'Emergency Unit'}</b>${famous ? ' <span style="font-size:9px;background:var(--amber);color:black;padding:1px 4px;border-radius:2px;">FAMOUS</span>' : ''}<br><small>${type.replace('_', ' ').toUpperCase()}</small><br><div style="margin-top:5px;font-weight:700;color:var(--red);">📞 ${phone}</div></div>`);
                     });
                 }
             } catch (e) { }
@@ -1868,6 +1876,8 @@
                 const p = await new Promise((r, j) => navigator.geolocation.getCurrentPosition(r, j, { timeout: 4000 }));
                 lat = p.coords.latitude; lng = p.coords.longitude;
             } catch (e) { }
+            // Fallback coordinates if user denies permission or timeout
+            if (!lat || !lng) { lat = 18.5204; lng = 73.8567; }
 
             const payload = {
                 emergency_type: type,
@@ -2199,7 +2209,7 @@
             if (lang === 'en') { location.reload(); return; }
             const dict = TRANSLATIONS[lang];
             if (!dict) return;
-            
+
             // Translate elements with data-tr
             document.querySelectorAll('[data-tr]').forEach(el => {
                 const key = el.getAttribute('data-tr');
@@ -2234,8 +2244,8 @@
                 const key = el.textContent.trim().replace(/[^\w\s]/g, '').trim();
                 const match = Object.keys(dict).find(k => key.toLowerCase().includes(k.toLowerCase()) || el.textContent.includes(k));
                 if (match && dict[match]) {
-                   const prefix = el.textContent.includes('🆘') ? '🆘 ' : el.textContent.includes('🚨') ? '🚨 ' : el.textContent.includes('📡') ? '📡 ' : '';
-                   el.textContent = prefix + dict[match];
+                    const prefix = el.textContent.includes('🆘') ? '🆘 ' : el.textContent.includes('🚨') ? '🚨 ' : el.textContent.includes('📡') ? '📡 ' : '';
+                    el.textContent = prefix + dict[match];
                 }
             });
 
@@ -2252,4 +2262,5 @@
         }
     </script>
 </body>
+
 </html>

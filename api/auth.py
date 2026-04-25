@@ -255,9 +255,6 @@ async def login(request: Request):
         log.warning("Supabase auth failed", email=payload.email, error=str(e))
         raise HTTPException(status_code=401, detail="Invalid email or password.")
 
-    if not result or not result.session:
-        raise HTTPException(status_code=401, detail="Invalid email or password.")
-
     session = result.session
     user    = result.user
 

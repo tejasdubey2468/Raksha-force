@@ -4,7 +4,7 @@
  */
 (function () {
   const URL = "https://xjjalkcmevxqkjqcbfge.supabase.co";
-  const KEY = "sb_publishable_k_m5PmGT8Z_PwZGBdo3oHQ_C08FHfVL";
+  const KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhqamFsa2NtZXZ4cWtqcWNiZmdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMDQyMzUsImV4cCI6MjA5MjU4MDIzNX0.sHjUiGNntUyNC9IUE9hPvBFT1YMDYcIPWV0JBax65sE";
   const API_BASE = window.RAKSHA_API_BASE || "";
 
   let _client = null;
