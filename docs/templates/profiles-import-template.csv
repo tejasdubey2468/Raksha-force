@@ -1,0 +1,6 @@
+id,full_name,phone,role
+AUTH_USER_UUID_1,Tejas Dubey,9876543210,responder
+AUTH_USER_UUID_2,Shweta Patil,9876543211,citizen
+AUTH_USER_UUID_3,Aryan Sharma,9876543212,admin
+AUTH_USER_UUID_4,Sakshi Kulkarni,9876543213,responder
+AUTH_USER_UUID_5,Jiya Verma,9876543214,citizen

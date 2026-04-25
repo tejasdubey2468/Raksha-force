@@ -1,0 +1,50 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "api/sos.py", "use": "@vercel/python" },
+    { "src": "api/incidents.py", "use": "@vercel/python" },
+    { "src": "api/dispatch.py", "use": "@vercel/python" },
+    { "src": "api/gps.py", "use": "@vercel/python" },
+    { "src": "api/auth.py", "use": "@vercel/python" },
+    { "src": "api/volunteers.py", "use": "@vercel/python" }
+  ],
+  "routes": [
+    { "src": "/api/sos(.*)", "dest": "api/sos.py" },
+    { "src": "/api/incidents(.*)", "dest": "api/incidents.py" },
+    { "src": "/api/dispatch(.*)", "dest": "api/dispatch.py" },
+    { "src": "/api/gps(.*)", "dest": "api/gps.py" },
+    { "src": "/api/auth(.*)", "dest": "api/auth.py" },
+    { "src": "/api/volunteers(.*)", "dest": "api/volunteers.py" },
+    { "src": "/admin/?", "dest": "/admin.html" },
+    { "src": "/citizen/?", "dest": "/citizen.html" },
+    { "src": "/", "dest": "/index.html" },
+    { "handle": "filesystem" }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET,POST,PATCH,DELETE,OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Authorization,Content-Type,X-Admin-Secret" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+      ]
+    }
+  ],
+  "env": {
+    "SUPABASE_URL": "@supabase_url",
+    "SUPABASE_SERVICE_KEY": "@supabase_service_key",
+    "SUPABASE_JWT_SECRET": "@supabase_jwt_secret",
+    "ADMIN_REGISTRATION_SECRET": "@admin_registration_secret"
+  }
+}

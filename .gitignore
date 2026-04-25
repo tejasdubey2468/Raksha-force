@@ -1,0 +1,21 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment variables
+.env
+
+# OS generated files
+.DS_Store
+
+# Vercel
+.vercel
+
+# Node (if any)
+node_modules/
+npm-debug.log*
+
+# Database
+database/*.csv
+database/*.json

@@ -1,0 +1,2255 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAKSHA-FORCE — Citizen Dashboard</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        input,
+        select,
+        textarea {
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        /* ---- TOPBAR ---- */
+        .topbar {
+            background: var(--blue);
+            padding: 0 24px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid var(--amber);
+            flex-shrink: 0;
+        }
+
+        .topbar-logo {
+            font-family: 'Orbitron', monospace;
+            font-weight: 900;
+            font-size: 14px;
+            letter-spacing: 3px;
+            color: white;
+        }
+
+        .topbar-logo span {
+            color: var(--amber);
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .topbar-user {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .user-avatar {
+            width: 30px;
+            height: 30px;
+            background: var(--red);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .topbar-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 5px 12px;
+            font-family: 'Orbitron', monospace;
+            font-size: 9px;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .topbar-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .topbar-btn.danger {
+            background: var(--red);
+            border-color: var(--red);
+        }
+
+        .db-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #444;
+            display: inline-block;
+            margin-right: 4px;
+        }
+
+        .db-dot.ok {
+            background: var(--green);
+            box-shadow: 0 0 6px var(--green);
+        }
+
+        .db-dot.err {
+            background: var(--red);
+        }
+
+        /* ---- LAYOUT ---- */
+        .layout {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            height: calc(100vh - 48px);
+        }
+
+        .sidebar {
+            width: 220px;
+            background: var(--dark);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            overflow-y: auto;
+        }
+
+        .main {
+            flex: 1;
+            overflow-y: auto;
+            background: var(--black);
+        }
+
+        /* ---- SIDEBAR ---- */
+        .sidebar-section {
+            padding: 16px 0 8px;
+        }
+
+        .sidebar-label {
+            font-family: 'Orbitron', monospace;
+            font-size: 8px;
+            letter-spacing: 3px;
+            color: var(--muted);
+            padding: 0 16px 8px;
+            text-transform: uppercase;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            color: var(--muted);
+        }
+
+        .nav-item:hover {
+            background: rgba(0, 48, 135, 0.1);
+            color: var(--text);
+            border-left-color: var(--blue);
+        }
+
+        .nav-item.active {
+            background: rgba(0, 48, 135, 0.15);
+            color: var(--lb);
+            border-left-color: var(--blue);
+        }
+
+        .nav-item .icon {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .nav-badge {
+            margin-left: auto;
+            background: var(--red);
+            color: white;
+            font-size: 9px;
+            font-family: 'Orbitron', monospace;
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+
+        .sidebar-sos {
+            margin: 16px;
+            background: var(--red);
+            border: none;
+            padding: 12px;
+            width: calc(100% - 32px);
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            font-size: 11px;
+            letter-spacing: 3px;
+            color: white;
+            cursor: pointer;
+            clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+            transition: all 0.3s;
+            animation: sosPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes sosPulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 12px rgba(200, 16, 46, 0.3);
+            }
+
+            50% {
+                box-shadow: 0 0 28px rgba(200, 16, 46, 0.8);
+            }
+        }
+
+        .sidebar-sos:hover {
+            transform: scale(1.02);
+        }
+
+        /* ---- PAGES ---- */
+        .page {
+            display: none;
+            padding: 28px;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* ---- PAGE HEADER ---- */
+        .page-header {
+            margin-bottom: 24px;
+        }
+
+        .page-title {
+            font-family: 'Bebas Neue', display;
+            font-size: 36px;
+            letter-spacing: 3px;
+            line-height: 1;
+        }
+
+        .page-sub {
+            color: var(--muted);
+            font-size: 13px;
+            margin-top: 4px;
+            letter-spacing: 0.5px;
+        }
+
+        /* ---- CARDS ---- */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 10px;
+            letter-spacing: 3px;
+            color: var(--blue);
+            text-transform: uppercase;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title::before {
+            content: '';
+            width: 20px;
+            height: 2px;
+            background: var(--blue);
+        }
+
+        /* ---- GRID ---- */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+        }
+
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        /* ---- STAT BOX ---- */
+        .stat-box {
+            background: var(--card);
+            border: 1px solid var(--border);
+            padding: 18px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-box::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--blue);
+        }
+
+        .stat-num {
+            font-family: 'Bebas Neue', display;
+            font-size: 42px;
+            color: var(--red);
+            line-height: 1;
+            display: block;
+        }
+
+        .stat-lbl {
+            font-size: 10px;
+            letter-spacing: 2px;
+            color: var(--muted);
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+
+        /* ---- FORM ---- */
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 9px;
+            letter-spacing: 3px;
+            color: var(--blue);
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .form-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 11px 13px;
+            color: var(--text);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .form-input:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 10px rgba(0, 48, 135, 0.2);
+        }
+
+        .form-input::placeholder {
+            color: var(--muted);
+        }
+
+        select.form-input {
+            appearance: none;
+            cursor: pointer;
+        }
+
+        textarea.form-input {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        /* ---- BUTTONS ---- */
+        .btn {
+            padding: 11px 24px;
+            border: none;
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            font-size: 10px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s;
+            clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+        }
+
+        .btn-red {
+            background: var(--red);
+            color: white;
+            box-shadow: 0 0 18px rgba(200, 16, 46, 0.25);
+        }
+
+        .btn-red:hover {
+            box-shadow: 0 0 32px rgba(200, 16, 46, 0.6);
+        }
+
+        .btn-blue {
+            background: var(--blue);
+            color: white;
+            box-shadow: 0 0 14px rgba(0, 48, 135, 0.25);
+        }
+
+        .btn-blue:hover {
+            box-shadow: 0 0 28px rgba(0, 48, 135, 0.6);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-outline:hover {
+            background: rgba(0, 48, 135, 0.1);
+        }
+
+        .btn-sm {
+            padding: 7px 14px;
+            font-size: 8px;
+        }
+
+        .btn-full {
+            width: 100%;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ---- STATUS BADGE ---- */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            font-family: 'Orbitron', monospace;
+            font-size: 8px;
+            letter-spacing: 2px;
+            border-radius: 2px;
+        }
+
+        .badge::before {
+            content: '';
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+        }
+
+        .badge-pending {
+            background: rgba(212, 160, 23, 0.15);
+            color: var(--amber);
+            border: 1px solid rgba(212, 160, 23, 0.3);
+        }
+
+        .badge-pending::before {
+            background: var(--amber);
+            box-shadow: 0 0 4px var(--amber);
+        }
+
+        .badge-assigned {
+            background: rgba(0, 48, 135, 0.15);
+            color: var(--lb);
+            border: 1px solid rgba(0, 48, 135, 0.3);
+        }
+
+        .badge-assigned::before {
+            background: var(--lb);
+            box-shadow: 0 0 4px var(--lb);
+        }
+
+        .badge-on_the_way {
+            background: rgba(224, 123, 0, 0.15);
+            color: var(--orange);
+            border: 1px solid rgba(224, 123, 0, 0.3);
+        }
+
+        .badge-on_the_way::before {
+            background: var(--orange);
+            box-shadow: 0 0 4px var(--orange);
+            animation: blink 0.8s ease-in-out infinite;
+        }
+
+        .badge-resolved {
+            background: rgba(0, 204, 102, 0.12);
+            color: var(--green);
+            border: 1px solid rgba(0, 204, 102, 0.3);
+        }
+
+        .badge-resolved::before {
+            background: var(--green);
+            box-shadow: 0 0 4px var(--green);
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.2;
+            }
+        }
+
+        /* ---- ALERT BOX ---- */
+        .alert-box {
+            padding: 12px 16px;
+            border-left: 3px solid;
+            margin-bottom: 12px;
+            font-size: 13px;
+        }
+
+        .alert-box.info {
+            background: rgba(0, 48, 135, 0.1);
+            border-color: var(--blue);
+            color: var(--lb);
+        }
+
+        .alert-box.warn {
+            background: rgba(224, 123, 0, 0.08);
+            border-color: var(--orange);
+            color: var(--orange);
+        }
+
+        .alert-box.danger {
+            background: rgba(200, 16, 46, 0.08);
+            border-color: var(--red);
+            color: var(--red);
+        }
+
+        .alert-box.success {
+            background: rgba(0, 204, 102, 0.07);
+            border-color: var(--green);
+            color: var(--green);
+        }
+
+        /* ---- INCIDENT CARD ---- */
+        .incident-card {
+            background: var(--card2);
+            border: 1px solid var(--border);
+            padding: 16px;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .incident-card:hover {
+            border-color: rgba(0, 48, 135, 0.6);
+            background: rgba(0, 48, 135, 0.06);
+        }
+
+        .incident-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+        }
+
+        .incident-card.priority-1::before {
+            background: var(--red);
+        }
+
+        .incident-card.priority-2::before {
+            background: var(--orange);
+        }
+
+        .incident-card.priority-3::before {
+            background: var(--amber);
+        }
+
+        .incident-card.priority-4::before {
+            background: var(--green);
+        }
+
+        .ic-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .ic-type {
+            font-weight: 700;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+        }
+
+        .ic-meta {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 4px;
+            letter-spacing: 0.5px;
+        }
+
+        .ic-desc {
+            font-size: 13px;
+            color: var(--muted);
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+
+        /* ---- MAP ---- */
+        .map-box {
+            height: 480px;
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+            background: var(--dark);
+        }
+
+        .map-box .leaflet-container {
+            background: var(--dark) !important;
+        }
+
+        .map-box .leaflet-tile {
+            filter: brightness(0.95) saturate(1) contrast(1) !important;
+        }
+
+        /* ---- TIMELINE ---- */
+        .timeline {
+            position: relative;
+            padding-left: 24px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--border);
+        }
+
+        .tl-item {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .tl-item::before {
+            content: '';
+            position: absolute;
+            left: -19px;
+            top: 4px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--card);
+            border: 2px solid var(--border);
+        }
+
+        .tl-item.done::before {
+            background: var(--green);
+            border-color: var(--green);
+            box-shadow: 0 0 8px var(--green);
+        }
+
+        .tl-item.active-step::before {
+            background: var(--orange);
+            border-color: var(--orange);
+            box-shadow: 0 0 8px var(--orange);
+            animation: blink 1s ease-in-out infinite;
+        }
+
+        .tl-title {
+            font-weight: 700;
+            font-size: 13px;
+        }
+
+        .tl-sub {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        /* ---- CHAT ---- */
+        .chat-box {
+            height: 220px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border);
+            padding: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .chat-msg {
+            max-width: 80%;
+            padding: 8px 12px;
+            border-radius: 2px;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .chat-msg.mine {
+            background: rgba(0, 48, 135, 0.25);
+            border: 1px solid rgba(0, 48, 135, 0.3);
+            align-self: flex-end;
+        }
+
+        .chat-msg.other {
+            background: var(--card2);
+            border: 1px solid var(--border);
+            align-self: flex-start;
+        }
+
+        .chat-sender {
+            font-size: 9px;
+            letter-spacing: 1px;
+            color: var(--muted);
+            margin-bottom: 3px;
+            font-family: 'Orbitron', monospace;
+        }
+
+        /* ---- AREA ALERTS ---- */
+        .area-alert {
+            background: var(--card2);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--red);
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .aa-severity {
+            font-family: 'Orbitron', monospace;
+            font-size: 8px;
+            letter-spacing: 2px;
+            padding: 3px 8px;
+            border-radius: 2px;
+        }
+
+        .aa-high {
+            background: rgba(200, 16, 46, 0.15);
+            color: var(--red);
+            border: 1px solid rgba(200, 16, 46, 0.3);
+        }
+
+        .aa-medium {
+            background: rgba(224, 123, 0, 0.12);
+            color: var(--orange);
+            border: 1px solid rgba(224, 123, 0, 0.3);
+        }
+
+        /* ---- IMAGE UPLOAD ---- */
+        .upload-zone {
+            border: 2px dashed rgba(0, 48, 135, 0.3);
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--blue);
+            background: rgba(0, 48, 135, 0.05);
+        }
+
+        .upload-zone input {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .upload-zone-text {
+            font-size: 12px;
+            color: var(--muted);
+            letter-spacing: 1px;
+        }
+
+        /* ---- MODAL ---- */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(8, 12, 16, 0.9);
+            backdrop-filter: blur(10px);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-top: 3px solid var(--red);
+            padding: 36px;
+            width: 90%;
+            max-width: 480px;
+            position: relative;
+            animation: modalIn 0.3s ease;
+        }
+
+        @keyframes modalIn {
+            from {
+                transform: scale(0.9) translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .modal-close:hover {
+            color: var(--red);
+        }
+
+        .modal-title {
+            font-family: 'Bebas Neue', display;
+            font-size: 32px;
+            letter-spacing: 3px;
+            color: var(--red);
+            margin-bottom: 8px;
+        }
+
+        /* ---- PROGRESS TRACKER ---- */
+        .progress-track {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+        }
+
+        .pt-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            position: relative;
+        }
+
+        .pt-step::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 16px;
+            width: 100%;
+            height: 2px;
+            background: var(--border);
+            z-index: 0;
+        }
+
+        .pt-step:last-child::after {
+            display: none;
+        }
+
+        .pt-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            background: var(--card);
+            position: relative;
+            z-index: 1;
+        }
+
+        .pt-step.done .pt-circle {
+            border-color: var(--green);
+            background: rgba(0, 204, 102, 0.12);
+            color: var(--green);
+        }
+
+        .pt-step.active-step .pt-circle {
+            border-color: var(--orange);
+            background: rgba(224, 123, 0, 0.12);
+            animation: blink 1s ease-in-out infinite;
+        }
+
+        .pt-step.done::after {
+            background: var(--green);
+        }
+
+        .pt-label {
+            font-size: 9px;
+            letter-spacing: 1px;
+            color: var(--muted);
+            margin-top: 6px;
+            text-align: center;
+        }
+
+        /* ---- TOAST ---- */
+        .toast-container {
+            position: fixed;
+            top: 60px;
+            right: 16px;
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--blue);
+            padding: 12px 16px;
+            max-width: 280px;
+            font-size: 12px;
+            animation: toastIn 0.3s ease;
+            transition: opacity 0.3s;
+        }
+
+        .toast.out {
+            opacity: 0;
+        }
+
+        .toast.red {
+            border-left-color: var(--red);
+        }
+
+        .toast.green {
+            border-left-color: var(--green);
+        }
+
+        @keyframes toastIn {
+            from {
+                transform: translateX(300px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 8px;
+            letter-spacing: 2px;
+            color: var(--lb);
+            margin-bottom: 3px;
+        }
+
+        .toast.red .toast-title {
+            color: var(--red);
+        }
+
+        .toast.green .toast-title {
+            color: var(--green);
+        }
+
+        /* ---- AUTH SCREEN ---- */
+        .auth-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--black);
+            z-index: 50000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-box {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-top: 3px solid var(--blue);
+            padding: 40px;
+            width: 400px;
+            max-width: 95vw;
+        }
+
+        .auth-logo {
+            font-family: 'Orbitron', monospace;
+            font-weight: 900;
+            font-size: 20px;
+            letter-spacing: 3px;
+            color: var(--red);
+            text-align: center;
+            margin-bottom: 6px;
+        }
+
+        .auth-sub {
+            text-align: center;
+            font-size: 11px;
+            letter-spacing: 2px;
+            color: var(--muted);
+            margin-bottom: 28px;
+        }
+
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            font-family: 'Orbitron', monospace;
+            font-size: 9px;
+            letter-spacing: 2px;
+            cursor: pointer;
+            color: var(--muted);
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .auth-tab.active {
+            color: var(--lb);
+            border-bottom-color: var(--blue);
+        }
+
+        /* ---- SCROLLBAR ---- */
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--dark);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 48, 135, 0.4);
+            border-radius: 2px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--blue);
+        }
+
+        /* ---- RESPONSIVE ---- */
+        @media(max-width:700px) {
+            .sidebar {
+                display: none;
+            }
+
+            .grid-4 {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- AUTH SCREEN -->
+    <div class="auth-screen" id="authScreen">
+        <div class="auth-box">
+            <div class="auth-logo">RAKSHA-FORCE</div>
+            <div class="auth-sub">CITIZEN PORTAL — SECURE ACCESS</div>
+            <div class="auth-tabs">
+                <div class="auth-tab active" onclick="switchAuthTab('login')">LOGIN</div>
+                <div class="auth-tab" onclick="switchAuthTab('register')">REGISTER</div>
+            </div>
+
+            <!-- LOGIN -->
+            <div id="authLogin">
+                <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input"
+                        id="loginEmail" placeholder="citizen@email.com"></div>
+                <div class="form-group"><label class="form-label">Password</label><input type="password"
+                        class="form-input" id="loginPassword" placeholder="••••••••"></div>
+                <button class="btn btn-blue btn-full" onclick="doLogin()" id="loginBtn"
+                    style="margin-top:8px;">LOGIN</button>
+                <div style="margin-top:12px;text-align:center;"><button class="btn btn-outline btn-sm"
+                        onclick="skipAuth()" style="clip-path:none;font-size:9px;">CONTINUE AS GUEST</button></div>
+            </div>
+
+            <!-- REGISTER -->
+            <div id="authRegister" style="display:none;">
+                <div class="grid-2" style="gap:10px;">
+                    <div class="form-group"><label class="form-label">Full Name</label><input type="text"
+                            class="form-input" id="regName" placeholder="Your name"></div>
+                    <div class="form-group"><label class="form-label">Phone</label><input type="tel" class="form-input"
+                            id="regPhone" placeholder="+91"></div>
+                </div>
+                <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input"
+                        id="regEmail" placeholder="you@email.com"></div>
+                <div class="form-group"><label class="form-label">Password</label><input type="password"
+                        class="form-input" id="regPassword" placeholder="Min 8 chars"></div>
+                <button class="btn btn-blue btn-full" onclick="doRegister()" id="registerBtn"
+                    style="margin-top:8px;">CREATE ACCOUNT</button>
+                <div style="margin-top:12px;text-align:center;"><button class="btn btn-outline btn-sm"
+                        onclick="skipAuth()" style="clip-path:none;font-size:9px;">CONTINUE AS GUEST</button></div>
+            </div>
+            <div style="margin-top:16px;text-align:center;"><a href="admin.html"
+                    style="font-family:'Orbitron',monospace;font-size:8px;letter-spacing:2px;color:var(--muted);">ADMIN
+                    / COMMAND CENTER →</a></div>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <div style="display:flex;align-items:center;gap:16px;">
+            <div class="topbar-logo">RAKSHA<span>-FORCE</span></div>
+            <span style="font-family:'Orbitron',monospace;font-size:8px;letter-spacing:2px;color:var(--amber);">CITIZEN
+                DASHBOARD</span>
+        </div>
+        <div class="topbar-right">
+            <select id="langSwitch" onchange="switchLanguage(this.value)" style="background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.2);font-size:11px;padding:4px 10px;border-radius:4px;cursor:pointer;font-family:'Rajdhani',sans-serif;margin-right:10px;">
+                <option value="en">ENGLISH</option>
+                <option value="hi">हिन्दी (Hindi)</option>
+                <option value="mr">मराठी (Marathi)</option>
+                <option value="gu">ગુજરાતી (Gujarati)</option>
+                <option value="ta">தமிழ் (Tamil)</option>
+                <option value="te">తెలుగు (Telugu)</option>
+                <option value="kn">ಕನ್ನಡ (Kannada)</option>
+            </select>
+            <span><span class="db-dot" id="dbDot"></span><span
+                    style="font-family:'Orbitron',monospace;font-size:8px;letter-spacing:1px;"
+                    id="dbTxt">CONNECTING</span></span>
+            <div class="topbar-user">
+                <div class="user-avatar" id="userAvatar">T</div><span id="userName">Tejas</span>
+            </div>
+            <button class="topbar-btn" onclick="doLogout()">LOGOUT</button>
+            <a href="index.html" class="topbar-btn">← HOME</a>
+        </div>
+    </div>
+
+    <!-- LAYOUT -->
+    <div class="layout">
+
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <button class="sidebar-sos" onclick="openSOSModal()">🆘 EMERGENCY SOS</button>
+            <div class="sidebar-section">
+                <div class="sidebar-label">Main</div>
+                <div class="nav-item active" onclick="showPage('dashboard')"><span class="icon">🏠</span>Overview</div>
+                <div class="nav-item" onclick="showPage('report')"><span class="icon">🚨</span>Report Incident</div>
+                <div class="nav-item" onclick="showPage('myreports')"><span class="icon">📋</span>My Reports<span
+                        class="nav-badge" id="pendingCount">0</span></div>
+                <div class="nav-item" onclick="showPage('track')"><span class="icon">📍</span>Track Help</div>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-label" data-tr="Info">Info</div>
+                <div class="nav-item" onclick="showPage('alerts')"><span class="icon">🔔</span>Area Alerts<span
+                        class="nav-badge" id="alertCount">0</span></div>
+                <div class="nav-item" onclick="showPage('helplines')"><span class="icon">📞</span>Helplines</div>
+            </div>
+            <div
+                style="margin-top:auto;padding:16px;font-family:'Orbitron',monospace;font-size:7px;letter-spacing:2px;color:var(--muted);border-top:1px solid var(--border);">
+                <div>RAKSHA-FORCE v2.0</div>
+                <div style="margin-top:4px;">CITIZEN PORTAL</div>
+            </div>
+        </div>
+
+        <!-- MAIN -->
+        <div class="main">
+
+            <!-- OVERVIEW PAGE -->
+            <div class="page active" id="page-dashboard">
+                <div class="page-header">
+                    <div class="page-title">OVERVIEW</div>
+                    <div class="page-sub">Welcome back. Here's your emergency response status.</div>
+                </div>
+
+                <!-- stat row -->
+                <div class="grid-4" style="margin-bottom:20px;" id="statRow">
+                    <div class="stat-box"><span class="stat-num" id="statTotal">0</span>
+                        <div class="stat-lbl">My Reports</div>
+                    </div>
+                    <div class="stat-box"><span class="stat-num" id="statPending" style="color:var(--amber);">0</span>
+                        <div class="stat-lbl">Pending</div>
+                    </div>
+                    <div class="stat-box"><span class="stat-num" id="statActive" style="color:var(--orange);">0</span>
+                        <div class="stat-lbl">Active</div>
+                    </div>
+                    <div class="stat-box"><span class="stat-num" id="statResolved" style="color:var(--green);">0</span>
+                        <div class="stat-lbl">Resolved</div>
+                    </div>
+                </div>
+
+                <!-- area alerts -->
+                <div class="card" style="margin-bottom:16px;" id="areaAlertsCard">
+                    <div class="card-title">⚠️ Active Area Alerts</div>
+                    <div id="dashAlerts">
+                        <div style="color:var(--muted);font-size:12px;">Loading...</div>
+                    </div>
+                </div>
+
+                <!-- quick report + map -->
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-title">🚀 Quick Actions</div>
+                        <button class="btn btn-red btn-full" onclick="showPage('report')" style="margin-bottom:10px;">🚨
+                            REPORT EMERGENCY</button>
+                        <button class="btn btn-blue btn-full" onclick="showPage('track')" style="margin-bottom:10px;">📍
+                            TRACK MY REPORT</button>
+                        <button class="btn btn-outline btn-full" onclick="showPage('myreports')">📋 VIEW ALL MY
+                            REPORTS</button>
+                        <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+                            <div
+                                style="font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:10px;">
+                                EMERGENCY HELPLINES</div>
+                            <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                                <a href="tel:100"
+                                    style="background:rgba(200,16,46,0.1);border:1px solid rgba(200,16,46,0.3);padding:5px 10px;font-size:11px;color:var(--red);font-weight:700;">Police
+                                    100</a>
+                                <a href="tel:101"
+                                    style="background:rgba(200,16,46,0.1);border:1px solid rgba(200,16,46,0.3);padding:5px 10px;font-size:11px;color:var(--red);font-weight:700;">Fire
+                                    101</a>
+                                <a href="tel:108"
+                                    style="background:rgba(200,16,46,0.1);border:1px solid rgba(200,16,46,0.3);padding:5px 10px;font-size:11px;color:var(--red);font-weight:700;">Ambulance
+                                    108</a>
+                                <a href="tel:112"
+                                    style="background:rgba(0,48,135,0.12);border:1px solid rgba(0,48,135,0.3);padding:5px 10px;font-size:11px;color:var(--lb);font-weight:700;">Emergency
+                                    112</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- REPORT PAGE -->
+            <div class="page" id="page-report">
+                <div class="page-header">
+                    <div class="page-title">REPORT INCIDENT</div>
+                    <div class="page-sub">Fill in the details. Your report is dispatched immediately.</div>
+                </div>
+                <div class="grid-2">
+                    <div>
+                        <div class="card" style="margin-bottom:16px;">
+                            <div class="card-title">📋 Incident Details</div>
+                            <div class="form-group">
+                                <label class="form-label">Emergency Type *</label>
+                                <select class="form-input" id="incType">
+                                    <option value="">Select type...</option>
+                                    <option value="fire">🔥 Fire Emergency</option>
+                                    <option value="medical">🚑 Medical Emergency</option>
+                                    <option value="police">👮 Police / Crime</option>
+                                    <option value="ambulance">🏥 Ambulance Required</option>
+                                    <option value="fire_brigade">🚒 Fire Brigade Required</option>
+                                    <option value="accident">🚗 Road Accident</option>
+                                    <option value="flood">🌊 Flood / Water Emergency</option>
+                                    <option value="women">🛡️ Women Safety</option>
+                                    <option value="child">👶 Child in Danger</option>
+                                    <option value="missing">🔍 Missing Person</option>
+                                    <option value="other">⚠️ Other Emergency</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Complaint Description *</label>
+                                <textarea class="form-input" id="incDesc"
+                                    placeholder="Describe what happened, how many people are involved, any injuries or casualties..."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Severity Assessment</label>
+                                <select class="form-input" id="incSeverity">
+                                    <option value="1">🔴 Critical — Life threatening, immediate help needed</option>
+                                    <option value="2">🟠 High — Serious, urgent response required</option>
+                                    <option value="3" selected>🟡 Medium — Significant but stable</option>
+                                    <option value="4">🟢 Low — Minor, non-urgent</option>
+                                </select>
+                            </div>
+                            <div class="grid-2" style="gap:10px;">
+                                <div class="form-group"><label class="form-label">Your Name (optional)</label><input
+                                        type="text" class="form-input" id="incName" placeholder="e.g., Ayush Singh"></div>
+                                <div class="form-group"><label class="form-label">Phone (optional)</label><input
+                                        type="tel" class="form-input" id="incPhone" placeholder="+91"></div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-title">📸 Photo Evidence (optional)</div>
+                            <div class="upload-zone" id="uploadZone">
+                                <input type="file" accept="image/*" id="photoInput" onchange="handlePhoto(this)">
+                                <div class="upload-zone-text">📷 TAP TO UPLOAD PHOTO<br><span
+                                        style="font-size:10px;opacity:0.6;">JPG, PNG up to 5MB</span></div>
+                                <div id="photoPreview" style="margin-top:10px;display:none;"><img id="photoImg"
+                                        style="max-height:100px;border:1px solid var(--border);" alt="preview"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="card" style="margin-bottom:16px;">
+                            <div class="card-title">📍 Location</div>
+                            <div class="form-group"><label class="form-label">Address / Landmark</label><input
+                                    type="text" class="form-input" id="incLocation"
+                                    placeholder="Auto-detecting from GPS..."></div>
+                            <button class="btn btn-blue btn-sm" onclick="getGPS()" style="margin-bottom:12px;">📡 DETECT
+                                MY LOCATION</button>
+                            <div class="map-box" id="reportMap"></div>
+                            <div style="font-size:10px;color:var(--muted);margin-top:6px;letter-spacing:1px;"
+                                id="gpsCoords">GPS: Not detected</div>
+                        </div>
+
+                        <div class="card">
+                            <button class="btn btn-red btn-full" onclick="submitIncident()" id="submitBtn">🚨 SUBMIT EMERGENCY REPORT</button>
+                            <div id="submitMsg" style="display:none;margin-top:10px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MY REPORTS PAGE -->
+            <div class="page" id="page-myreports">
+                <div class="page-header">
+                    <div class="page-title">MY REPORTS</div>
+                    <div class="page-sub">All your submitted incidents and their current status.</div>
+                </div>
+                <div style="margin-bottom:16px;display:flex;gap:10px;flex-wrap:wrap;">
+                    <select class="form-input" id="filterStatus" onchange="loadMyReports()" style="width:160px;">
+                        <option value="">All Status</option>
+                        <option value="pending">Pending</option>
+                        <option value="assigned">Assigned</option>
+                        <option value="on_the_way">On The Way</option>
+                        <option value="resolved">Resolved</option>
+                    </select>
+                    <button class="btn btn-outline btn-sm" onclick="loadMyReports()">↻ REFRESH</button>
+                </div>
+                <div id="myReportsList">
+                    <div style="color:var(--muted);font-size:13px;padding:20px 0;">Loading your reports...</div>
+                </div>
+            </div>
+
+            <!-- TRACK PAGE -->
+            <div class="page" id="page-track">
+                <div class="page-header">
+                    <div class="page-title">TRACK HELP</div>
+                    <div class="page-sub">Real-time status of your emergency reports.</div>
+                </div>
+                <div style="margin-bottom:16px;">
+                    <div class="form-group"><label class="form-label">Select Incident to Track</label>
+                        <select class="form-input" id="trackSelect" onchange="loadTrack()">
+                            <option value="">Select an incident...</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="trackContent" style="display:none;">
+                    <div class="grid-2" style="margin-bottom:16px;">
+                        <div class="card">
+                            <div class="card-title">🔄 Response Progress</div>
+                            <div class="progress-track" id="progressTrack">
+                                <div class="pt-step" id="pt1">
+                                    <div class="pt-circle">📝</div>
+                                    <div class="pt-label">REPORTED</div>
+                                </div>
+                                <div class="pt-step" id="pt2">
+                                    <div class="pt-circle">✅</div>
+                                    <div class="pt-label">ASSIGNED</div>
+                                </div>
+                                <div class="pt-step" id="pt3">
+                                    <div class="pt-circle">🚗</div>
+                                    <div class="pt-label">ON WAY</div>
+                                </div>
+                                <div class="pt-step" id="pt4">
+                                    <div class="pt-circle">✓</div>
+                                    <div class="pt-label">RESOLVED</div>
+                                </div>
+                            </div>
+                            <div id="trackStatus" style="margin-top:12px;"></div>
+                            <div id="teamInfo"
+                                style="margin-top:12px;padding:12px;background:rgba(0,48,135,0.08);border:1px solid var(--border);display:none;">
+                                <div
+                                    style="font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--blue);margin-bottom:6px;">
+                                    ASSIGNED TEAM</div>
+                                <div id="teamDetails" style="font-size:13px;"></div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">🗺️ Live Map</div>
+                            <div class="map-box" id="trackMap"></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">💬 Incident Chat</div>
+                        <div class="chat-box" id="chatBox"></div>
+                        <div style="display:flex;gap:8px;">
+                            <input type="text" class="form-input" id="chatInput" placeholder="Type a message..."
+                                style="flex:1;" onkeydown="if(event.key==='Enter')sendChat()">
+                            <button class="btn btn-blue btn-sm" onclick="sendChat()">SEND</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="trackEmpty" style="color:var(--muted);font-size:13px;padding:20px 0;">Select an incident above
+                    to track its progress.</div>
+            </div>
+
+            <!-- ALERTS PAGE -->
+            <div class="page" id="page-alerts">
+                <div class="page-header">
+                    <div class="page-title">AREA ALERTS</div>
+                    <div class="page-sub">Live emergency warnings and advisories for your region.</div>
+                </div>
+                <div id="alertsList">
+                    <div style="color:var(--muted);">Loading alerts...</div>
+                </div>
+            </div>
+
+            <!-- HELPLINES PAGE -->
+            <div class="page" id="page-helplines">
+                <div class="page-header">
+                    <div class="page-title">HELPLINES</div>
+                    <div class="page-sub">Official emergency contact numbers. Tap to call on mobile.</div>
+                </div>
+                <div class="grid-2">
+                    <div>
+                        <div class="card" style="margin-bottom:16px;">
+                            <div class="card-title">🚨 Emergency Numbers</div>
+                            <div style="display:flex;flex-direction:column;gap:10px;">
+                                <a href="tel:112"
+                                    style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:rgba(200,16,46,0.08);border:1px solid rgba(200,16,46,0.2);"><span
+                                        style="font-weight:700;">All Emergency (National)</span><span
+                                        style="font-family:'Orbitron',monospace;font-size:18px;color:var(--red);font-weight:900;">112</span></a>
+                                <a href="tel:100"
+                                    style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--card2);border:1px solid var(--border);"><span>Police</span><span
+                                        style="font-family:'Orbitron',monospace;font-size:16px;color:var(--lb);">100</span></a>
+                                <a href="tel:101"
+                                    style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--card2);border:1px solid var(--border);"><span>Fire
+                                        Brigade</span><span
+                                        style="font-family:'Orbitron',monospace;font-size:16px;color:var(--orange);">101</span></a>
+                                <a href="tel:108"
+                                    style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--card2);border:1px solid var(--border);"><span>Ambulance</span><span
+                                        style="font-family:'Orbitron',monospace;font-size:16px;color:var(--green);">108</span></a>
+                                <a href="tel:1070"
+                                    style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--card2);border:1px solid var(--border);"><span>NDRF
+                                        Disaster</span><span
+                                        style="font-family:'Orbitron',monospace;font-size:16px;color:var(--amber);">1070</span></a>
+                                <a href="tel:1091"
+                                    style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--card2);border:1px solid var(--border);"><span>Women
+                                        Safety</span><span
+                                        style="font-family:'Orbitron',monospace;font-size:16px;color:var(--lb);">1091</span></a>
+                                <a href="tel:1098"
+                                    style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--card2);border:1px solid var(--border);"><span>Child
+                                        Helpline</span><span
+                                        style="font-family:'Orbitron',monospace;font-size:16px;color:var(--amber);">1098</span></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="card">
+                            <div class="card-title">💡 Safety Tips</div>
+                            <div
+                                style="display:flex;flex-direction:column;gap:12px;font-size:13px;line-height:1.6;color:var(--muted);">
+                                <div style="padding:12px;background:var(--card2);border-left:3px solid var(--blue);">🔥
+                                    <strong style="color:var(--text);">Fire:</strong> Evacuate immediately. Don't use
+                                    elevators. Call 101.</div>
+                                <div style="padding:12px;background:var(--card2);border-left:3px solid var(--green);">🚑
+                                    <strong style="color:var(--text);">Medical:</strong> Keep the person calm and warm.
+                                    Don't move if spine injury suspected.</div>
+                                <div style="padding:12px;background:var(--card2);border-left:3px solid var(--orange);">
+                                    🌊 <strong style="color:var(--text);">Flood:</strong> Move to high ground
+                                    immediately. Avoid wading through water.</div>
+                                <div style="padding:12px;background:var(--card2);border-left:3px solid var(--amber);">⚡
+                                    <strong style="color:var(--text);">Earthquake:</strong> Drop, Cover, Hold on. Stay
+                                    away from windows.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /main -->
+    </div><!-- /layout -->
+
+    <!-- SOS MODAL -->
+    <div class="modal-overlay" id="sosModal">
+        <div class="modal">
+            <button class="modal-close" onclick="closeModal('sosModal')">✕</button>
+            <div class="modal-title">🚨 SOS EMERGENCY</div>
+            <p style="color:var(--muted);font-size:13px;margin-bottom:20px;">Immediately alert emergency services with
+                your location. This is saved to the national database.</p>
+            <div class="form-group"><label class="form-label" data-tr="Emergency Type">Emergency Type</label>
+                <select class="form-input" id="sosType">
+                    <option value="fire">🔥 Fire / आग</option>
+                    <option value="medical">🚑 Medical / चिकित्सा</option>
+                    <option value="police">👮 Police / पुलिस</option>
+                    <option value="flood">🌊 Flood / बाढ़</option>
+                    <option value="accident">🚗 Accident / दुर्घटना</option>
+                    <option value="women_safety">🛡️ Women Safety / महिला सुरक्षा</option>
+                    <option value="child">👶 Child Emergency / बाल आपातकाल</option>
+                    <option value="missing">🔍 Missing Person / लापता व्यक्ति</option>
+                    <option value="other">⚠️ Other Emergency / अन्य आपातकाल</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label" data-tr="Upload Evidence / Image">Upload Evidence / Image</label>
+                <input type="file" id="sosImage" class="form-input" accept="image/*" style="font-size:11px;padding:8px;">
+            </div>
+            <div class="form-group"><label class="form-label" data-tr="Brief Description">Brief Description</label><textarea class="form-input"
+                    id="sosDesc" rows="2" placeholder="What is happening?"></textarea></div>
+            <div style="display:flex;gap:10px;margin-top:4px;">
+                <button class="btn btn-red" style="flex:1;" onclick="triggerSOS()" id="sosBtn">🆘 SEND SOS NOW</button>
+                <button class="btn btn-outline" onclick="closeModal('sosModal')">CANCEL</button>
+            </div>
+            <div id="sosResult" style="display:none;margin-top:12px;"></div>
+        </div>
+    </div>
+
+    <!-- INCIDENT DETAIL MODAL -->
+    <div class="modal-overlay" id="incidentModal">
+        <div class="modal" style="max-width:560px;">
+            <button class="modal-close" onclick="closeModal('incidentModal')">✕</button>
+            <div id="incidentModalContent"></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/utils.js"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script>
+        // ============================================================
+        // CONFIG
+        // ============================================================
+        let sb, currentUser = null, reportMap = null, trackMap = null;
+        let userLat = 18.5204, userLng = 73.8567, currentIncidentId = null;
+        let photoBase64 = null;
+
+        // ============================================================
+        // BOOT
+        // ============================================================
+        window.addEventListener('load', async () => {
+            sb = window.RF.client();
+            try {
+                await sb.from('incident_reports').select('id').limit(1);
+                setDB(true);
+            } catch (e) { setDB(false); }
+
+            // check session
+            await checkSession();
+
+            // listen for ai analysis changes
+            document.getElementById('incType').addEventListener('change', updateAI);
+            document.getElementById('incSeverity').addEventListener('change', updateAI);
+        });
+
+        function setDB(ok) {
+            document.getElementById('dbDot').className = 'db-dot ' + (ok ? 'ok' : 'err');
+            document.getElementById('dbTxt').textContent = ok ? 'DB CONNECTED' : 'DB ERROR';
+        }
+
+        // ============================================================
+        // AUTH
+        // ============================================================
+        function switchAuthTab(tab) {
+            document.querySelectorAll('.auth-tab').forEach((t, i) => t.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'register')));
+            document.getElementById('authLogin').style.display = tab === 'login' ? 'block' : 'none';
+            document.getElementById('authRegister').style.display = tab === 'register' ? 'block' : 'none';
+        }
+
+        async function doLogin() {
+            const btn = document.getElementById('loginBtn');
+            const email = document.getElementById('loginEmail').value;
+            const pass = document.getElementById('loginPassword').value;
+            if (!email || !pass) { toast('Fill in all fields', 'ERR'); return; }
+            btn.textContent = 'LOGGING IN...'; btn.disabled = true;
+            try {
+                const data = await window.RF.login(email, pass);
+                currentUser = data.user;
+            } catch (error) {
+                toast('Login failed: ' + error.message, 'ERR');
+                btn.textContent = 'LOGIN'; btn.disabled = false;
+                return;
+            }
+            onLoggedIn();
+        }
+
+        async function doRegister() {
+            const btn = document.getElementById('registerBtn');
+            const name = document.getElementById('regName').value;
+            const email = document.getElementById('regEmail').value;
+            const pass = document.getElementById('regPassword').value;
+            if (!email || !pass || !name) { toast('Fill in all fields', 'ERR'); return; }
+            if (pass.length < 8) { toast('Password must be 8+ chars', 'ERR'); return; }
+            btn.textContent = 'CREATING...'; btn.disabled = true;
+            try {
+                const data = await window.RF.register({
+                    email,
+                    password: pass,
+                    full_name: name,
+                    phone: document.getElementById('regPhone').value,
+                    role: 'citizen'
+                });
+                currentUser = data.user;
+            } catch (error) {
+                toast('Registration failed: ' + error.message, 'ERR');
+                btn.textContent = 'CREATE ACCOUNT'; btn.disabled = false;
+                return;
+            }
+            onLoggedIn();
+        }
+
+        function skipAuth() {
+            currentUser = null;
+            document.getElementById('authScreen').style.display = 'none';
+            initDashboard();
+        }
+
+        async function checkSession() {
+            const { data: { session } } = await sb.auth.getSession();
+            if (session?.user) {
+                currentUser = session.user;
+                onLoggedIn();
+            } else {
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('guest') === 'true') {
+                    skipAuth();
+                } else {
+                    // Show auth screen instead of redirecting immediately if we want to allow guest login on this page
+                    document.getElementById('authScreen').style.display = 'flex';
+                }
+            }
+        }
+
+        async function doLogout() {
+            await window.RF.logout();
+            currentUser = null;
+            window.location.href = 'index.html';
+        }
+
+        function onLoggedIn() {
+            document.getElementById('authScreen').style.display = 'none';
+            const name = currentUser?.user_metadata?.full_name || currentUser?.email?.split('@')[0] || 'User';
+            document.getElementById('userName').textContent = name;
+            document.getElementById('userAvatar').textContent = name[0].toUpperCase();
+            initDashboard();
+        }
+
+        // ============================================================
+        // DASHBOARD INIT
+        // ============================================================
+        function initDashboard() {
+            initReportMap();
+            loadDashboardStats();
+            loadAreaAlerts();
+            loadNearbyFeed();
+            loadMyReports();
+            populateTrackDropdown();
+            tryAutoGPS();
+            // auto refresh every 30s
+            setInterval(() => { loadDashboardStats(); loadNearbyFeed(); loadAreaAlerts(); }, 30000);
+        }
+
+        // ============================================================
+        // NAVIGATION
+        // ============================================================
+        function showPage(name) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById('page-' + name).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(n => { if (n.textContent.trim().toLowerCase().includes(name) || n.getAttribute('onclick')?.includes(name)) n.classList.add('active'); });
+            
+            if (name === 'myreports') loadMyReports();
+            if (name === 'track') {
+                populateTrackDropdown();
+                setTimeout(() => { if (trackMap) trackMap.invalidateSize(); }, 300);
+            }
+            if (name === 'alerts') loadAlertsFull();
+            if (name === 'report') {
+                initReportMap();
+                setTimeout(() => { if (reportMap) reportMap.invalidateSize(); }, 300);
+            }
+            if (name === 'dashboard') {
+                // Any maps on dashboard? No reportMap is on report page.
+            }
+        }
+
+        // ============================================================
+        // GPS
+        // ============================================================
+        function tryAutoGPS() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(p => {
+                    userLat = p.coords.latitude; userLng = p.coords.longitude;
+                    document.getElementById('incLocation').value = `${userLat.toFixed(5)}, ${userLng.toFixed(5)}`;
+                    document.getElementById('gpsCoords').textContent = `GPS: ${userLat.toFixed(5)}, ${userLng.toFixed(5)}`;
+                    if (reportMap) reportMap.setView([userLat, userLng], 14);
+                });
+            }
+        }
+
+        function getGPS() {
+            if (!navigator.geolocation) { toast('GPS not supported', 'ERR'); return; }
+            navigator.geolocation.getCurrentPosition(p => {
+                userLat = p.coords.latitude; userLng = p.coords.longitude;
+                document.getElementById('incLocation').value = `${userLat.toFixed(5)}, ${userLng.toFixed(5)}`;
+                document.getElementById('gpsCoords').textContent = `GPS: ${userLat.toFixed(5)}, ${userLng.toFixed(5)}`;
+                if (reportMap) { reportMap.setView([userLat, userLng], 14); addMapMarker(reportMap, userLat, userLng, '📍', 'Your Location'); }
+                toast('📍 Location detected!', 'OK');
+            }, () => toast('Location access denied', 'ERR'));
+        }
+
+        // ============================================================
+        // REPORT MAP
+        // ============================================================
+        function initReportMap() {
+            if (reportMap) return;
+            reportMap = L.map('reportMap', { zoomControl: true, attributionControl: false }).setView([userLat, userLng], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(reportMap);
+            addMapMarker(reportMap, userLat, userLng, '📍', 'Your Location');
+            loadRealWorldInfrastructure(userLat, userLng, reportMap);
+            
+            reportMap.on('moveend', () => {
+                const c = reportMap.getCenter();
+                loadRealWorldInfrastructure(c.lat, c.lng, reportMap);
+            });
+        }
+
+        let infraCache = new Set();
+        async function loadRealWorldInfrastructure(lat, lng, map) {
+            try {
+                const query = `[out:json][timeout:25];(node["amenity"="hospital"](around:10000, ${lat}, ${lng});node["amenity"="fire_station"](around:10000, ${lat}, ${lng});node["amenity"="police"](around:10000, ${lat}, ${lng});node["emergency"="ambulance_station"](around:10000, ${lat}, ${lng}););out body;`;
+                const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data.elements) {
+                    data.elements.forEach(el => {
+                        if (infraCache.has(el.id)) return;
+                        infraCache.add(el.id);
+                        
+                        const tags = el.tags || {};
+                        const type = tags.amenity || tags.emergency;
+                        let iconEmoji = '🚑', color = '#3B82F6';
+                        
+                        const phone = tags.phone || tags['contact:phone'] || (type==='police'?'100':type==='fire_station'?'101':'102') + ' / 112';
+                        const famous = ["Lilavati", "Nanavati", "Kokilaben", "Jaslok", "Breach Candy", "Cooper", "KEM", "Sion", "Nair", "Hinduja", "SevenHills"].some(f => tags.name?.includes(f));
+                        
+                        if (type === 'fire_station') { iconEmoji = '🚒'; color = '#EF4444'; }
+                        else if (type === 'police') { iconEmoji = '🚓'; color = '#1E3A8A'; }
+                        else if (type === 'hospital') { 
+                            iconEmoji = '🏥'; 
+                            color = famous ? '#D4A017' : '#10B981';
+                        }
+                        
+                        const icon = L.divIcon({
+                            html: `<div style="width:${famous?28:24}px;height:${famous?28:24}px;background:${color};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:${famous?14:12}px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);">${iconEmoji}</div>`,
+                            className: '', iconAnchor: [famous?14:12, famous?14:12]
+                        });
+                        L.marker([el.lat, el.lon], { icon }).addTo(map).bindPopup(`<div style="font-family:'Rajdhani',sans-serif;"><b style="color:${color}">${tags.name || 'Emergency Unit'}</b>${famous?' <span style="font-size:9px;background:var(--amber);color:black;padding:1px 4px;border-radius:2px;">FAMOUS</span>':''}<br><small>${type.replace('_', ' ').toUpperCase()}</small><br><div style="margin-top:5px;font-weight:700;color:var(--red);">📞 ${phone}</div></div>`);
+                    });
+                }
+            } catch (e) { }
+        }
+
+        function addMapMarker(map, lat, lng, emoji, label, color = '') {
+            const icon = L.divIcon({ html: `<div style="font-size:20px;filter:drop-shadow(0 0 4px rgba(200,16,46,0.7));">${emoji}</div>`, className: '', iconAnchor: [10, 10] });
+            return L.marker([lat, lng], { icon }).addTo(map).bindPopup(`<b style="font-family:Rajdhani,sans-serif">${label}</b>`);
+        }
+
+        // ============================================================
+        // PHOTO
+        // ============================================================
+        function handlePhoto(input) {
+            const file = input.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                photoBase64 = e.target.result;
+                document.getElementById('photoImg').src = e.target.result;
+                document.getElementById('photoPreview').style.display = 'block';
+                toast('Photo loaded ✓', 'OK');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // ============================================================
+        // AI ANALYSIS
+        // ============================================================
+        const aiMessages = {
+            fire: ['🔥 High thermal event detected. Fire brigade + medical recommended.', 'Estimated priority: CRITICAL if indoor fire.'],
+            medical: ['🚑 Medical emergency protocol activated. Ambulance + hospital pre-alert.', 'Collect patient details: age, symptoms, consciousness level.'],
+            police: ['👮 Law enforcement required. Crime unit + patrol dispatch.', 'Do not confront perpetrators. Stay safe.'],
+            ambulance: ['🏥 Ambulance dispatch initiated. Nearest unit being located.', 'Keep patient calm. Do not move if spine injury suspected.'],
+            fire_brigade: ['🚒 Fire brigade dispatch. Evacuate area 200m radius.', 'Gas leaks: do not use electrical switches.'],
+            flood: ['🌊 NDRF + rescue units activated. Move to high ground.', 'Avoid wading through water. Contamination risk.'],
+            women: ['🛡️ Women safety unit + police dispatched.', 'Share live location with trusted contacts. Move to public area.'],
+            accident: ['🚗 Traffic police + ambulance dispatch. Hazard area secured.', 'Do not move injured — spinal injury risk.'],
+            child: ['👶 Child protection unit + police activated.', 'Keep child visible and calm.'],
+            missing: ['🔍 Missing persons unit activated. Area surveillance triggered.', 'Note last seen location, clothing, time.'],
+            other: ['⚠️ General emergency protocol. Nearest available unit dispatched.', 'Provide as much detail as possible.'],
+        };
+        const severityLabels = { 1: '🔴 CRITICAL — Immediate dispatch', 2: '🟠 HIGH — Priority response', 3: '🟡 MEDIUM — Standard response', 4: '🟢 LOW — Queued response' };
+
+        function updateAI() {
+            const type = document.getElementById('incType').value;
+            const sev = document.getElementById('incSeverity').value;
+            const msgs = aiMessages[type];
+            if (!msgs) { document.getElementById('aiAnalysis').textContent = 'Select incident type to see analysis...'; return; }
+            document.getElementById('aiAnalysis').innerHTML = `
+    <div style="margin-bottom:8px;padding:8px;background:rgba(0,48,135,0.08);border-left:2px solid var(--blue);font-size:12px;">${msgs[0]}</div>
+    <div style="margin-bottom:8px;padding:8px;background:rgba(0,48,135,0.04);border-left:2px solid var(--border);font-size:11px;color:var(--muted);">💡 ${msgs[1]}</div>
+    <div style="font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;padding:6px 10px;background:rgba(200,16,46,0.07);color:var(--red);border:1px solid rgba(200,16,46,0.2);">${severityLabels[sev]}</div>
+  `;
+            checkDuplicates(type);
+        }
+
+        async function checkDuplicates(type) {
+            if (!type) return;
+            const tenMinsAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+            const { data } = await sb.from('incident_reports')
+                .select('id,emergency_type,location,created_at')
+                .eq('emergency_type', type)
+                .gte('created_at', tenMinsAgo)
+                .neq('status', 'resolved').limit(3);
+            if (data && data.length > 0) {
+                document.getElementById('dupWarning').style.display = 'block';
+                document.getElementById('dupWarning').innerHTML = `⚠️ <strong>${data.length} similar incident(s)</strong> reported recently for "${type}". A team may already be responding. Your report will still be logged.`;
+            } else {
+                document.getElementById('dupWarning').style.display = 'none';
+            }
+        }
+
+        // ============================================================
+        // SUBMIT INCIDENT
+        // ============================================================
+        async function submitIncident() {
+            const type = document.getElementById('incType').value;
+            const desc = document.getElementById('incDesc').value;
+            if (!type) { toast('Select an emergency type', 'ERR'); return; }
+            if (!desc) { toast('Describe the incident', 'ERR'); return; }
+
+            const btn = document.getElementById('submitBtn');
+            btn.textContent = '⏳ SUBMITTING...'; btn.disabled = true;
+
+            let lat = userLat, lng = userLng;
+            try {
+                const p = await new Promise((r, j) => navigator.geolocation.getCurrentPosition(r, j, { timeout: 4000 }));
+                lat = p.coords.latitude; lng = p.coords.longitude;
+            } catch (e) { }
+
+            const payload = {
+                emergency_type: type,
+                description: desc,
+                reporter_name: document.getElementById('incName').value || null,
+                phone: document.getElementById('incPhone').value || null,
+                location: document.getElementById('incLocation').value || null,
+                latitude: lat, longitude: lng,
+                priority: parseInt(document.getElementById('incSeverity').value),
+                status: 'pending',
+                user_id: currentUser?.id || null,
+                image_url: null
+            };
+
+            btn.textContent = '🚨 SUBMIT EMERGENCY REPORT'; btn.disabled = false;
+            let created;
+            try {
+                created = await window.RF.createIncident(payload);
+            } catch (error) {
+                document.getElementById('submitMsg').style.display = 'block';
+                document.getElementById('submitMsg').innerHTML = `<div class="alert-box danger">❌ Failed: ${error.message}</div>`;
+                return;
+            }
+            const ref = 'RF-' + created.incident_id.substr(0, 8).toUpperCase();
+            document.getElementById('submitMsg').style.display = 'block';
+            document.getElementById('submitMsg').innerHTML = `<div class="alert-box success">✅ Report submitted! Reference: <strong>${ref}</strong><br>Emergency services notified. Help is being dispatched.</div>`;
+            toast(`✅ Report ${ref} submitted!`, 'OK');
+            // reset form
+            ['incType', 'incDesc', 'incName', 'incPhone', 'incLocation'].forEach(id => document.getElementById(id).value = '');
+            photoBase64 = null; document.getElementById('photoPreview').style.display = 'none';
+            document.getElementById('aiAnalysis').textContent = 'Select incident type to see AI analysis...';
+            loadDashboardStats();
+            await autoAssignTeam(created.incident_id, type, lat, lng);
+        }
+
+        // ============================================================
+        // AUTO ASSIGN TEAM (simple AI: nearest available)
+        // ============================================================
+        async function autoAssignTeam(incidentId, type, lat, lng) {
+            const typeMap = { fire: 'fire', fire_brigade: 'fire', medical: 'medical', ambulance: 'medical', police: 'police', flood: 'ndrf', women: 'police', accident: 'medical', child: 'police', missing: 'police', other: 'ndrf' };
+            const teamType = typeMap[type] || 'ndrf';
+
+            const { data: teams } = await sb.from('teams').select('*').eq('status', 'available');
+            if (!teams || teams.length === 0) return;
+
+            // filter by type preference, fallback to any available
+            let pool = teams.filter(t => t.type === teamType);
+            if (pool.length === 0) pool = teams;
+
+            // find nearest
+            const nearest = pool.reduce((best, t) => {
+                const d = Math.sqrt(Math.pow(t.latitude - lat, 2) + Math.pow(t.longitude - lng, 2));
+                return d < best.dist ? { team: t, dist: d } : best;
+            }, { team: pool[0], dist: Infinity }).team;
+
+            // assign
+            await sb.from('assignments').insert([{ incident_id: incidentId, team_id: nearest.id, eta_minutes: Math.ceil(nearest ? 5 + Math.random() * 10 : 15) }]);
+            await sb.from('incident_reports').update({ status: 'assigned', assigned_team_id: nearest.id }).eq('id', incidentId);
+            await sb.from('teams').update({ status: 'busy', current_load: (nearest.current_load || 0) + 1 }).eq('id', nearest.id);
+            toast(`🚑 Team "${nearest.name}" assigned!`, 'OK');
+        }
+
+        // ============================================================
+        // DASHBOARD STATS
+        // ============================================================
+        async function loadDashboardStats() {
+            const uid = currentUser?.id;
+            let q = sb.from('incident_reports').select('status');
+            if (uid) q = q.eq('user_id', uid);
+            const { data } = await q;
+            if (!data) return;
+            document.getElementById('statTotal').textContent = data.length;
+            document.getElementById('statPending').textContent = data.filter(d => d.status === 'pending').length;
+            document.getElementById('statActive').textContent = data.filter(d => ['assigned', 'on_the_way'].includes(d.status)).length;
+            document.getElementById('statResolved').textContent = data.filter(d => d.status === 'resolved').length;
+            document.getElementById('pendingCount').textContent = data.filter(d => d.status === 'pending').length;
+        }
+
+        // ============================================================
+        async function loadNearbyFeed() {
+            const feed = document.getElementById('nearbyFeed');
+            if (!feed) return;
+            const { data } = await sb.from('incident_reports').select('emergency_type,location,status,created_at,priority').order('created_at', { ascending: false }).limit(8);
+            if (!data || data.length === 0) { feed.innerHTML = '<div style="color:var(--muted);font-size:12px;">No recent incidents.</div>'; return; }
+            const icons = { fire: '🔥', medical: '🚑', police: '👮', ambulance: '🏥', fire_brigade: '🚒', accident: '🚗', flood: '🌊', women: '🛡️', child: '👶', missing: '🔍', other: '⚠️' };
+            feed.innerHTML = data.map(d => {
+                const mins = Math.round((Date.now() - new Date(d.created_at)) / 60000);
+                const ago = mins < 1 ? 'Just now' : mins < 60 ? `${mins}m ago` : `${Math.floor(mins / 60)}h ago`;
+                return `<div style="display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+      <span style="font-size:18px;">${icons[d.emergency_type] || '⚠️'}</span>
+      <div><div style="font-size:13px;font-weight:600;">${(d.emergency_type || 'incident').replace('_', ' ').toUpperCase()}</div>
+      <div style="font-size:10px;color:var(--muted);">${d.location || 'Unknown location'} • ${ago}</div></div>
+      <span class="badge badge-${d.status}" style="margin-left:auto;white-space:nowrap;">${d.status}</span>
+    </div>`;
+            }).join('');
+        }
+
+        // ============================================================
+        // AREA ALERTS
+        // ============================================================
+        async function loadAreaAlerts() {
+            const { data } = await sb.from('area_alerts').select('*').eq('active', true).order('created_at', { ascending: false }).limit(3);
+            const el = document.getElementById('dashAlerts');
+            document.getElementById('alertCount').textContent = data?.length || 0;
+            if (!data || data.length === 0) { el.innerHTML = '<div style="color:var(--muted);font-size:12px;">No active alerts in your area.</div>'; return; }
+            el.innerHTML = data.map(a => `
+    <div class="area-alert" style="border-left-color:${a.severity === 'high' ? 'var(--red)' : 'var(--orange)'};">
+      <div><span class="aa-severity ${a.severity === 'high' ? 'aa-high' : 'aa-medium'}">${a.severity.toUpperCase()}</span>
+      <div style="font-weight:700;font-size:14px;margin-top:6px;">${a.title}</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:3px;">${a.message}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:4px;">📍 ${a.area}</div></div>
+    </div>`).join('');
+        }
+
+        async function loadAlertsFull() {
+            const { data } = await sb.from('area_alerts').select('*').eq('active', true).order('created_at', { ascending: false });
+            const el = document.getElementById('alertsList');
+            if (!data || data.length === 0) { el.innerHTML = '<div style="color:var(--muted);">No active alerts.</div>'; return; }
+            el.innerHTML = data.map(a => `
+    <div class="area-alert" style="border-left-color:${a.severity === 'high' ? 'var(--red)' : a.severity === 'medium' ? 'var(--orange)' : 'var(--amber)'};">
+      <div style="flex:1;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span class="aa-severity ${a.severity === 'high' ? 'aa-high' : 'aa-medium'}">${a.severity.toUpperCase()}</span>
+          <span style="font-size:10px;color:var(--muted);">${new Date(a.created_at).toLocaleString()}</span>
+        </div>
+        <div style="font-weight:700;font-size:15px;margin-top:8px;">${a.title}</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:4px;">${a.message}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px;">📍 Affected area: ${a.area}</div>
+      </div>
+    </div>`).join('');
+        }
+
+        // ============================================================
+        // MY REPORTS
+        // ============================================================
+        async function loadMyReports() {
+            const uid = currentUser?.id;
+            const statusFilter = document.getElementById('filterStatus').value;
+            let q = sb.from('incident_reports').select('*').order('created_at', { ascending: false }).limit(20);
+            if (uid) q = q.eq('user_id', uid);
+            if (statusFilter) q = q.eq('status', statusFilter);
+            const { data } = await q;
+            const el = document.getElementById('myReportsList');
+            if (!data || data.length === 0) { el.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:20px 0;">No reports found.</div>'; return; }
+            const icons = { fire: '🔥', medical: '🚑', police: '👮', ambulance: '🏥', fire_brigade: '🚒', accident: '🚗', flood: '🌊', women: '🛡️', child: '👶', missing: '🔍', other: '⚠️' };
+            el.innerHTML = data.map(d => `
+    <div class="incident-card priority-${d.priority || 3}" onclick="openIncidentModal('${d.id}')">
+      <div class="ic-header">
+        <div class="ic-type">${icons[d.emergency_type] || '⚠️'} ${(d.emergency_type || '').replace('_', ' ').toUpperCase()}</div>
+        <span class="badge badge-${d.status}">${d.status?.replace('_', ' ')}</span>
+      </div>
+      <div class="ic-desc">${d.description?.substr(0, 120)}${d.description?.length > 120 ? '...' : ''}</div>
+      <div class="ic-meta">📍 ${d.location || 'Location not specified'} &nbsp;|&nbsp; ${new Date(d.created_at).toLocaleString()} &nbsp;|&nbsp; Ref: RF-${d.id.substr(0, 8).toUpperCase()}</div>
+    </div>`).join('');
+        }
+
+        // ============================================================
+        // TRACK
+        // ============================================================
+        async function populateTrackDropdown() {
+            const uid = currentUser?.id;
+            let q = sb.from('incident_reports').select('id,emergency_type,status,created_at').order('created_at', { ascending: false }).limit(10);
+            if (uid) q = q.eq('user_id', uid);
+            const { data } = await q;
+            const sel = document.getElementById('trackSelect');
+            const icons = { fire: '🔥', medical: '🚑', police: '👮', ambulance: '🏥', fire_brigade: '🚒', accident: '🚗', flood: '🌊', women: '🛡️', child: '👶', missing: '🔍', other: '⚠️' };
+            if (data && data.length > 0) {
+                sel.innerHTML = '<option value="">Select an incident...</option>' + data.map(d => `<option value="${d.id}">${icons[d.emergency_type] || '⚠️'} ${(d.emergency_type || '').replace('_', ' ').toUpperCase()} — ${d.status} — ${new Date(d.created_at).toLocaleDateString()}</option>`).join('');
+            }
+        }
+
+        async function loadTrack() {
+            const id = document.getElementById('trackSelect').value;
+            if (!id) { document.getElementById('trackContent').style.display = 'none'; document.getElementById('trackEmpty').style.display = 'block'; return; }
+            currentIncidentId = id;
+            document.getElementById('trackContent').style.display = 'block';
+            document.getElementById('trackEmpty').style.display = 'none';
+
+            const { data: inc } = await sb.from('incident_reports').select('*').eq('id', id).single();
+            if (!inc) return;
+
+            // progress steps
+            const steps = ['pending', 'assigned', 'on_the_way', 'resolved'];
+            const cur = steps.indexOf(inc.status);
+            ['pt1', 'pt2', 'pt3', 'pt4'].forEach((pid, i) => {
+                const el = document.getElementById(pid);
+                el.classList.remove('done', 'active-step');
+                if (i < cur) el.classList.add('done');
+                else if (i === cur) el.classList.add('active-step');
+            });
+
+            const statusMsg = {
+                pending: '⏳ Report received. Analyzing and assigning nearest team...',
+                assigned: '✅ Team assigned! Preparing to dispatch.',
+                on_the_way: '🚗 Help is on the way! ETA being calculated...',
+                resolved: '✓ Incident resolved. Thank you for using RAKSHA-FORCE.'
+            };
+            document.getElementById('trackStatus').innerHTML = `<div class="alert-box ${inc.status === 'resolved' ? 'success' : inc.status === 'on_the_way' ? 'warn' : 'info'}">${statusMsg[inc.status] || ''}</div>`;
+
+            // load assigned team
+            if (inc.assigned_team_id) {
+                const { data: team } = await sb.from('teams').select('*').eq('id', inc.assigned_team_id).single();
+                if (team) {
+                    document.getElementById('teamInfo').style.display = 'block';
+                    document.getElementById('teamDetails').innerHTML = `<div><strong>${team.name}</strong> — ${team.type.toUpperCase()}</div><div style="font-size:11px;color:var(--muted);margin-top:4px;">Status: ${team.status} | Unit capacity: ${team.capacity}</div>`;
+                }
+            } else {
+                document.getElementById('teamInfo').style.display = 'none';
+            }
+
+            // track map
+            initTrackMap(inc);
+            loadChat(id);
+        }
+
+        function initTrackMap(inc) {
+            if (trackMap) trackMap.remove();
+            trackMap = L.map('trackMap', { zoomControl: false, attributionControl: false }).setView([inc.latitude || userLat, inc.longitude || userLng], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(trackMap);
+            if (inc.latitude) addMapMarker(trackMap, inc.latitude, inc.longitude, '🚨', 'Incident Location');
+            // simulate team moving
+            if (inc.status === 'on_the_way' || inc.status === 'assigned') {
+                addMapMarker(trackMap, (inc.latitude || userLat) + 0.01, (inc.longitude || userLng) + 0.01, '🚑', 'Response Team');
+            }
+            loadRealWorldInfrastructure(inc.latitude || userLat, inc.longitude || userLng, trackMap);
+        }
+
+        // ============================================================
+        // CHAT
+        // ============================================================
+        async function loadChat(incidentId) {
+            const { data } = await sb.from('incident_messages').select('*').eq('incident_id', incidentId).order('created_at', { ascending: true });
+            const box = document.getElementById('chatBox');
+            if (!data || data.length === 0) { box.innerHTML = '<div style="color:var(--muted);font-size:12px;text-align:center;">No messages yet. You can message the response team.</div>'; return; }
+            box.innerHTML = data.map(m => `
+    <div class="chat-msg ${m.sender_role === 'citizen' ? 'mine' : 'other'}">
+      <div class="chat-sender">${m.sender_role?.toUpperCase()} — ${m.sender_name || 'Unknown'}</div>
+      <div>${m.message}</div>
+      <div style="font-size:9px;color:var(--muted);margin-top:4px;">${new Date(m.created_at).toLocaleTimeString()}</div>
+    </div>`).join('');
+            box.scrollTop = box.scrollHeight;
+        }
+
+        async function sendChat() {
+            const input = document.getElementById('chatInput');
+            const msg = input.value.trim();
+            if (!msg || !currentIncidentId) return;
+            input.value = '';
+            const name = currentUser?.user_metadata?.full_name || 'Citizen';
+            const { error } = await sb.from('incident_messages').insert([{ incident_id: currentIncidentId, sender_name: name, sender_role: 'citizen', message: msg }]);
+            if (!error) loadChat(currentIncidentId);
+        }
+
+        // ============================================================
+        // INCIDENT DETAIL MODAL
+        // ============================================================
+        async function openIncidentModal(id) {
+            const { data: inc } = await sb.from('incident_reports').select('*').eq('id', id).single();
+            if (!inc) return;
+            const icons = { fire: '🔥', medical: '🚑', police: '👮', ambulance: '🏥', fire_brigade: '🚒', accident: '🚗', flood: '🌊', women: '🛡️', child: '👶', missing: '🔍', other: '⚠️' };
+            document.getElementById('incidentModalContent').innerHTML = `
+    <div class="modal-title">${icons[inc.emergency_type] || '⚠️'} ${(inc.emergency_type || '').replace('_', ' ').toUpperCase()}</div>
+    <span class="badge badge-${inc.status}" style="margin-bottom:16px;display:inline-flex;">${inc.status?.replace('_', ' ')}</span>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+      <div style="font-size:11px;color:var(--muted);">Reference<div style="color:var(--text);font-weight:700;font-family:'Orbitron',monospace;font-size:12px;">RF-${inc.id.substr(0, 8).toUpperCase()}</div></div>
+      <div style="font-size:11px;color:var(--muted);">Priority<div style="color:var(--text);font-weight:700;">${['', '🔴 Critical', '🟠 High', '🟡 Medium', '🟢 Low'][inc.priority || 3]}</div></div>
+      <div style="font-size:11px;color:var(--muted);">Submitted<div style="color:var(--text);">${new Date(inc.created_at).toLocaleString()}</div></div>
+      <div style="font-size:11px;color:var(--muted);">Location<div style="color:var(--text);">${inc.location || 'Not specified'}</div></div>
+    </div>
+    <div style="padding:12px;background:var(--card2);border:1px solid var(--border);border-left:3px solid var(--blue);font-size:13px;line-height:1.5;margin-bottom:14px;">${inc.description}</div>
+    <button class="btn btn-blue btn-sm" onclick="closeModal('incidentModal');showPage('track');document.getElementById('trackSelect').value='${id}';loadTrack();">📍 TRACK THIS INCIDENT</button>
+  `;
+            document.getElementById('incidentModal').classList.add('active');
+        }
+
+        // ============================================================
+        // SOS
+        // ============================================================
+        async function triggerSOS() {
+            const btn = document.getElementById('sosBtn');
+            btn.textContent = '⏳ SENDING...'; btn.disabled = true;
+            const type = document.getElementById('sosType').value;
+            const desc = document.getElementById('sosDesc').value;
+            let lat = userLat, lng = userLng;
+            try { const p = await new Promise((r, j) => navigator.geolocation.getCurrentPosition(r, j, { timeout: 5000 })); lat = p.coords.latitude; lng = p.coords.longitude; } catch (e) { }
+            btn.textContent = '🆘 SEND SOS NOW'; btn.disabled = false;
+            document.getElementById('sosResult').style.display = 'block';
+            try {
+                await window.RF.createSOS({ type, description: desc || null, latitude: lat, longitude: lng });
+                document.getElementById('sosResult').innerHTML = '<div class="alert-box success">🆘 SOS sent! Emergency services alerted. Stay calm. Help is coming.</div>';
+                toast('🆘 SOS dispatched!', 'ERR');
+            } catch (error) {
+                document.getElementById('sosResult').innerHTML = '<div class="alert-box danger">❌ SOS failed. Call 112 directly!</div>';
+            }
+            setTimeout(() => closeModal('sosModal'), 4000);
+        }
+
+        // ============================================================
+        // MODALS
+        // ============================================================
+        function openSOSModal() { document.getElementById('sosModal').classList.add('active'); document.getElementById('sosResult').style.display = 'none'; }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+        document.querySelectorAll('.modal-overlay').forEach(el => el.addEventListener('click', e => { if (e.target === el) el.classList.remove('active'); }));
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active')); });
+        // MULTI-LANGUAGE ENGINE
+        // ============================================================
+        const TRANSLATIONS = {
+            hi: {
+                "OVERVIEW": "सिंहावलोकन", "REPORT INCIDENT": "रिपोर्ट करें", "MY REPORTS": "मेरी रिपोर्ट्स", "TRACK HELP": "मदद ट्रैक करें", "AREA ALERTS": "क्षेत्र अलर्ट", "HELPLINES": "हेल्पलाइन", "LOGOUT": "लॉगआउट", "EMERGENCY SOS": "🆘 आपातकालीन एसओएस", "Emergency Type": "आपातकालीन प्रकार", "Brief Description": "संक्षिप्त विवरण", "Upload Evidence / Image": "प्रमाण / फोटो अपलोड करें", "DETECT MY LOCATION": "मेरी स्थिति का पता लगाएं", "SUBMIT EMERGENCY REPORT": "आपातकालीन रिपोर्ट भेजें", "SEND SOS NOW": "🆘 अभी एसओएस भेजें", "CANCEL": "रद्द करें", "Dashboard": "डैशबोर्ड", "Report Incident": "रिपोर्ट करें", "My Reports": "मेरी रिपोर्ट्स", "Track": "ट्रैक करें", "Alerts": "अलर्ट", "Info": "जानकारी"
+            },
+            mr: {
+                "OVERVIEW": "थोडक्यात माहिती", "REPORT INCIDENT": "अहवाल द्या", "MY REPORTS": "माझे अहवाल", "TRACK HELP": "मदत ट्रॅक करा", "AREA ALERTS": "सूचना", "HELPLINES": "हेल्पलाइन", "LOGOUT": "लॉगआउट", "EMERGENCY SOS": "🆘 आणीबाणी SOS", "Emergency Type": "आणीबाणीचा प्रकार", "Brief Description": "थोडक्यात वर्णन", "Upload Evidence / Image": "पुरावा / फोटो अपलोड करा", "DETECT MY LOCATION": "माझे स्थान शोधा", "SUBMIT EMERGENCY REPORT": "आणीबाणीचा अहवाल पाठवा", "SEND SOS NOW": "🆘 आता SOS पाठवा", "CANCEL": "रद्द करा", "Dashboard": "डॅशबोर्ड", "Report Incident": "अहवाल द्या", "My Reports": "माझे अहवाल", "Track": "ट्रॅक करा", "Alerts": "सूचना", "Info": "माहिती"
+            },
+            gu: {
+                "OVERVIEW": "ઝાંખી", "REPORT INCIDENT": "અહેવાલ આપો", "MY REPORTS": "મારા અહેવાલો", "TRACK HELP": "મદદ ટ્રૅક કરો", "AREA ALERTS": "એલર્ટ્સ", "HELPLINES": "હેલ્પલાઇન", "LOGOUT": "લોગઆઉટ", "EMERGENCY SOS": "🆘 કટોકટી SOS", "Emergency Type": "કટોકટી પ્રકાર", "Brief Description": "ટૂંકું વર્ણન", "Upload Evidence / Image": "પુરાવા / ફોટો અપલોડ કરો", "DETECT MY LOCATION": "મારું સ્થાન શોધો", "SUBMIT EMERGENCY REPORT": "કટોકટી અહેવાલ સબમિટ કરો", "SEND SOS NOW": "🆘 હમણાં SOS મોકલો", "CANCEL": "રદ કરો", "Dashboard": "ડેશબોર્ડ", "Report Incident": "અહેવાલ આપો", "My Reports": "મારા અહેવાલો", "Track": "ટ્રૅક કરો", "Alerts": "એલર્ટ્સ", "Info": "માહિતી"
+            },
+            ta: {
+                "OVERVIEW": "மேலோட்டம்", "REPORT INCIDENT": "புகார் அளிக்கவும்", "MY REPORTS": "எனது அறிக்கைகள்", "TRACK HELP": "உதவியைக் கண்காணிக்கவும்", "AREA ALERTS": "எச்சரிக்கைகள்", "HELPLINES": "உதவி எண்கள்", "LOGOUT": "வெளியேறு", "EMERGENCY SOS": "🆘 அவசர SOS", "Emergency Type": "அவசர வகை", "Brief Description": "சுருக்கமான விவரம்", "Upload Evidence / Image": "புகைப்படம் பதிவேற்றவும்", "DETECT MY LOCATION": "எனது இருப்பிடத்தைக் கண்டறியவும்", "SUBMIT EMERGENCY REPORT": "அவசர அறிக்கையை சமர்ப்பிக்கவும்", "SEND SOS NOW": "🆘 இப்போது SOS அனுப்பு", "CANCEL": "ரத்துசெய்", "Dashboard": "டாஷ்போர்டு", "Report Incident": "புகார் அளிக்கவும்", "My Reports": "எனது அறிக்கைகள்", "Track": "கண்காணிக்கவும்", "Alerts": "எச்சரிக்கைகள்", "Info": "தகவல்"
+            },
+            te: {
+                "OVERVIEW": "అవలోకనం", "REPORT INCIDENT": "నివేదించండి", "MY REPORTS": "నా నివేదికలు", "TRACK HELP": "సహాయాన్ని ట్రాక్ చేయండి", "AREA ALERTS": "హెచ్చరికలు", "HELPLINES": "హెల్ప్‌లైన్‌లు", "LOGOUT": "లాగ్అవుట్", "EMERGENCY SOS": "🆘 అత్యవసర SOS", "Emergency Type": "అత్యవసర రకం", "Brief Description": "సంక్షిప్త వివరణ", "Upload Evidence / Image": "ఫోటో అప్‌లోడ్ చేయండి", "DETECT MY LOCATION": "నా స్థానాన్ని గుర్తించండి", "SUBMIT EMERGENCY REPORT": "అత్యవసర నివేదికను సమర్పించండి", "SEND SOS NOW": "🆘 ఇప్పుడే SOS పంపండి", "CANCEL": "రద్దు చేయండి", "Dashboard": "డాష్‌బోర్డ్", "Report Incident": "నివేదించండి", "My Reports": "నా నివేదికలు", "Track": "ట్రాక్ చేయండి", "Alerts": "హెచ్చరికలు", "Info": "సమాచారం"
+            },
+            kn: {
+                "OVERVIEW": "ಅವಲೋಕನ", "REPORT INCIDENT": "ವರದಿ ಮಾಡಿ", "MY REPORTS": "ನನ್ನ ವರದಿಗಳು", "TRACK HELP": "ಸಹಾಯವನ್ನು ಟ್ರ್ಯಾಕ್ ಮಾಡಿ", "AREA ALERTS": "ಎಚ್ಚರಿಕೆಗಳು", "HELPLINES": "ಸಹಾಯವಾಣಿಗಳು", "LOGOUT": "ಲಾಗ್‌ಔಟ್", "EMERGENCY SOS": "🆘 ತುರ್ತು SOS", "Emergency Type": "ತುರ್ತು ವಿಧ", "Brief Description": "ಸಂಕ್ಷಿಪ್ತ ವಿವರಣೆ", "Upload Evidence / Image": "ಫೋಟೋ ಅಪ್ಲೋಡ್ ಮಾಡಿ", "DETECT MY LOCATION": "ನನ್ನ ಸ್ಥಳವನ್ನು ಪತ್ತೆ ಮಾಡಿ", "SUBMIT EMERGENCY REPORT": "ತುರ್ತು ವರದಿ ಸಲ್ಲಿಸಿ", "SEND SOS NOW": "🆘 ಈಗಲೇ SOS ಕಳುಹಿಸಿ", "CANCEL": "ರದ್ದುಮಾಡಿ", "Dashboard": "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್", "Report Incident": "ವರದಿ ಮಾಡಿ", "My Reports": "ನನ್ನ ವರದಿಗಳು", "Track": "ಟ್ರ್ಯಾಕ್ ಮಾಡಿ", "Alerts": "ಎಚ್ಚರಿಕೆಗಳು", "Info": "ಮಾಹಿತಿ"
+            }
+        };
+
+        function switchLanguage(lang) {
+            if (lang === 'en') { location.reload(); return; }
+            const dict = TRANSLATIONS[lang];
+            if (!dict) return;
+            
+            // Translate elements with data-tr
+            document.querySelectorAll('[data-tr]').forEach(el => {
+                const key = el.getAttribute('data-tr');
+                if (dict[key]) el.textContent = dict[key];
+            });
+
+            // Translate page headers and titles
+            document.querySelectorAll('.page-title').forEach(el => {
+                const key = el.textContent.trim();
+                if (dict[key]) el.textContent = dict[key];
+            });
+
+            // Translate sidebar buttons and nav items
+            document.querySelectorAll('.sidebar-sos').forEach(el => { if (dict["EMERGENCY SOS"]) el.textContent = dict["EMERGENCY SOS"]; });
+            document.querySelectorAll('.topbar-btn').forEach(el => {
+                const key = el.textContent.trim();
+                if (dict[key]) el.textContent = dict[key];
+            });
+
+            document.querySelectorAll('.nav-item').forEach(el => {
+                const key = el.textContent.replace(/[^\w\s]/g, '').trim(); // Remove icons for matching
+                // Try direct match or simplified match
+                const match = Object.keys(dict).find(k => key.toLowerCase().includes(k.toLowerCase()) || el.textContent.includes(k));
+                if (match && dict[match]) {
+                    const icon = el.querySelector('.icon')?.outerHTML || '';
+                    el.innerHTML = icon + ' ' + dict[match];
+                }
+            });
+
+            // Translate buttons
+            document.querySelectorAll('button.btn').forEach(el => {
+                const key = el.textContent.trim().replace(/[^\w\s]/g, '').trim();
+                const match = Object.keys(dict).find(k => key.toLowerCase().includes(k.toLowerCase()) || el.textContent.includes(k));
+                if (match && dict[match]) {
+                   const prefix = el.textContent.includes('🆘') ? '🆘 ' : el.textContent.includes('🚨') ? '🚨 ' : el.textContent.includes('📡') ? '📡 ' : '';
+                   el.textContent = prefix + dict[match];
+                }
+            });
+
+            toast('Language switched successfully!', 'OK');
+        }
+
+        function toast(msg, type = 'OK') {
+            const container = document.getElementById('toastContainer');
+            const t = document.createElement('div');
+            t.className = 'toast' + (type === 'ERR' ? ' red' : type === 'OK' ? ' green' : '');
+            t.innerHTML = `<div class="toast-title">${type === 'ERR' ? '⚠️ ALERT' : '✅ SYSTEM'}</div><div>${msg}</div>`;
+            container.appendChild(t);
+            setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 300); }, 3500);
+        }
+    </script>
+</body>
+</html>

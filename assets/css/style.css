@@ -1,0 +1,137 @@
+/* RAKSHA-FORCE — Global Design System */
+
+:root {
+  --red: #C8102E;
+  --orange: #E07B00;
+  --amber: #D4A017;
+  --blue: #003087;
+  --lightblue: #6B9FE0;
+  --black: #080C10;
+  --dark: #0D1117;
+  --card: #111820;
+  --card2: #161E28;
+  --border: rgba(200, 16, 46, 0.2);
+  --border2: rgba(0, 48, 135, 0.35);
+  --text: #E2E8F0;
+  --muted: #7A8899;
+  --green: #00CC66;
+  --glow: 0 0 28px rgba(200, 16, 46, 0.35);
+  --glow-blue: 0 0 18px rgba(0, 48, 135, 0.45);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--black);
+  color: var(--text);
+  font-family: 'Rajdhani', sans-serif;
+  overflow-x: hidden;
+  cursor: crosshair;
+}
+
+/* Utilities */
+.text-red { color: var(--red); }
+.text-amber { color: var(--amber); }
+.text-blue { color: var(--lightblue); }
+.text-muted { color: var(--muted); }
+
+.bg-red { background: var(--red); }
+.bg-blue { background: var(--blue); }
+
+.btn {
+  font-family: 'Orbitron', monospace;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Global Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--black);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--dark);
+  border: 1px solid var(--border);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--red);
+}
+
+/* Layout & Grids */
+.grid-2, .grid-3, .grid-4, .grid-7-5 {
+  display: grid;
+  gap: 20px;
+}
+
+.grid-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-4 { grid-template-columns: repeat(4, 1fr); }
+.grid-7-5 { grid-template-columns: 7fr 5fr; }
+
+/* Responsiveness Fixes */
+@media (max-width: 1024px) {
+  .grid-7-5 { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  body {
+    padding-top: 80px; 
+  }
+  
+  .grid-2, .grid-3, .grid-4 {
+    grid-template-columns: 1fr;
+  }
+  
+  .sidebar {
+    width: 100% !important;
+    height: auto !important;
+    position: relative !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--border);
+  }
+  
+  .layout {
+    flex-direction: column !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  
+  .main {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .hero-title {
+    font-size: clamp(48px, 10vw, 80px) !important;
+  }
+  
+  .hero-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Auth & Modals */
+.w-full { width: 100%; }
+.mt-2 { margin-top: 10px; }
+.mt-3 { margin-top: 15px; }
+.mb-4 { margin-bottom: 20px; }

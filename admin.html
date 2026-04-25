@@ -1,0 +1,1814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Raksha Force — Command Center</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="assets/css/style.css">
+<style>
+/* ============================================================
+   RAKSHA FORCE — COMMAND CENTER THEME (SYNCED)
+   ============================================================ */
+:root {
+  --sidebar-w: 240px;
+  --header-h:  60px;
+}
+
+.leaflet-tile { filter: brightness(0.95) saturate(1) contrast(1) !important; }
+
+body {
+  height: 100%; 
+  overflow: hidden;
+}
+a { color: inherit; text-decoration: none; }
+button, input, select, textarea { font-family: inherit; }
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--blue); border-radius: 4px; }
+
+/* Background Accents */
+.bg-grid { position: fixed; inset: 0; background-image: linear-gradient(rgba(0,48,135,0.035) 1px,transparent 1px),linear-gradient(90deg,rgba(0,48,135,0.035) 1px,transparent 1px); background-size: 60px 60px; pointer-events: none; z-index: 0; }
+
+/* ============================================================
+   LAYOUT SHELL
+   ============================================================ */
+.shell { display: flex; height: 100%; position: relative; z-index: 1; }
+
+/* ── Sidebar ── */
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--dark);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  flex-shrink: 0;
+  z-index: 100;
+  transition: transform 0.3s ease;
+}
+.sidebar-logo {
+  height: var(--header-h);
+  display: flex; align-items: center; gap: 12px;
+  padding: 0 20px;
+  border-bottom: 2px solid var(--amber);
+  background: var(--blue);
+  flex-shrink: 0;
+}
+.logo-icon {
+  width: 34px; height: 34px;
+  background: var(--red);
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0;
+  box-shadow: var(--glow);
+}
+.logo-text { font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 16px; letter-spacing: 2px; color: white; }
+.logo-badge {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 8px; font-weight: 700; letter-spacing: 2px;
+  color: var(--amber); margin-top: -2px;
+}
+
+.sidebar-nav { flex: 1; padding: 16px 0; overflow-y: auto; }
+.nav-section-label {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 8px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
+  color: var(--muted); padding: 12px 20px 8px;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 20px;
+  cursor: pointer; color: var(--muted);
+  transition: all 0.2s;
+  font-size: 14px; font-weight: 600;
+  position: relative;
+  border-left: 3px solid transparent;
+}
+.nav-item:hover { background: rgba(0,48,135,0.1); color: var(--text); border-left-color: var(--blue); }
+.nav-item.active {
+  background: rgba(0,48,135,0.15);
+  color: var(--lb);
+  border-left-color: var(--blue);
+}
+.nav-icon { width: 20px; text-align: center; font-size: 16px; flex-shrink: 0; }
+.nav-badge {
+  margin-left: auto;
+  background: var(--red);
+  color: white; font-size: 9px; font-weight: 700;
+  padding: 2px 7px; border-radius: 10px;
+  font-family: 'Orbitron', sans-serif;
+}
+
+.sidebar-footer {
+  padding: 16px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+  background: rgba(0,0,0,0.2);
+}
+.sidebar-user {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px;
+}
+.user-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--red);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; flex-shrink: 0;
+  box-shadow: 0 0 10px rgba(200, 16, 46, 0.4);
+}
+.user-name { font-size: 13px; font-weight: 700; letter-spacing: 0.5px; }
+.user-role { font-size: 10px; color: var(--lb); font-family: 'Orbitron', sans-serif; letter-spacing: 1px; }
+.btn-logout {
+  margin-top: 10px; width: 100%;
+  padding: 8px;
+  background: rgba(200, 16, 46, 0.1); border: 1px solid var(--border2);
+  color: var(--red); border-radius: 4px;
+  cursor: pointer; font-size: 11px; font-weight: 700;
+  font-family: 'Orbitron', sans-serif; letter-spacing: 1.5px;
+  transition: all 0.2s;
+}
+.btn-logout:hover { background: var(--red); color: white; }
+
+/* ── Main Content ── */
+.main { flex: 1; display: flex; flex-direction: column; min-width: 0; overflow: hidden; background: var(--black); position: relative; }
+
+/* ── Top Bar ── */
+.topbar {
+  height: var(--header-h);
+  background: var(--dark);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center;
+  padding: 0 24px; gap: 20px;
+  flex-shrink: 0; z-index: 50;
+}
+.topbar-title { font-family: 'Bebas Neue', cursive; font-size: 24px; letter-spacing: 2px; }
+.topbar-spacer { flex: 1; }
+.topbar-chips { display: flex; align-items: center; gap: 10px; }
+.chip {
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 12px; border-radius: 2px;
+  font-size: 11px; font-weight: 600; border: 1px solid var(--border);
+  font-family: 'Orbitron', sans-serif; letter-spacing: 1px;
+}
+.chip-live { background: rgba(200, 16, 46, 0.1); border-color: var(--border2); color: var(--red); }
+.chip-live::before { content:''; width:6px; height:6px; border-radius:50%; background:var(--red); animation:blink 1.2s infinite; box-shadow: 0 0 6px var(--red); }
+@keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.2;} }
+
+.chip-db-ok  { background: rgba(0, 204, 102, 0.1); border-color: rgba(0, 204, 102, 0.2); color: var(--green); }
+.chip-db-err { background: rgba(200, 16, 46, 0.1);  border-color: var(--border2);  color: var(--red); }
+.chip-db::before { content:''; width:6px; height:6px; border-radius:50%; }
+.chip-db-ok::before { background:var(--green); box-shadow: 0 0 6px var(--green); }
+.chip-db-err::before{ background:var(--red); box-shadow: 0 0 6px var(--red); }
+
+.topbar-clock { font-family: 'Orbitron', sans-serif; font-size: 11px; color: var(--muted); letter-spacing: 1px; }
+
+/* ── Page Content Area ── */
+.pages { flex: 1; overflow: hidden; position: relative; }
+.page { display: none; height: 100%; overflow-y: auto; padding: 30px; }
+.page.active { display: block; }
+.page-title { font-family: 'Bebas Neue', cursive; font-size: 42px; letter-spacing: 3px; line-height: 1; margin-bottom: 6px; }
+.page-sub { color: var(--muted); font-size: 14px; margin-bottom: 28px; letter-spacing: 0.5px; }
+
+/* ============================================================
+   DESIGN COMPONENTS
+   ============================================================ */
+
+/* ── Stat Cards ── */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 30px; }
+.stat-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 24px;
+  position: relative; overflow: hidden;
+  transition: all 0.3s;
+}
+.stat-card:hover { border-color: var(--blue); transform: translateY(-2px); }
+.stat-card::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: var(--blue);
+}
+.stat-card.red::after   { background: var(--red); }
+.stat-card.blue::after  { background: var(--blue); }
+.stat-card.green::after { background: var(--green); }
+.stat-card.warn::after  { background: var(--orange); }
+.stat-card.purple::after{ background: var(--lb); }
+
+.stat-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+.stat-icon { font-size: 24px; }
+.stat-change { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 2px; font-family: 'Orbitron', sans-serif; }
+.stat-change.up   { background: rgba(0, 204, 102, 0.15); color: var(--green); }
+.stat-change.down { background: rgba(200, 16, 46, 0.15);  color: var(--red); }
+
+.stat-value { font-family: 'Bebas Neue', cursive; font-size: 48px; line-height: 1; margin-bottom: 4px; color: var(--text); }
+.stat-label { font-family: 'Orbitron', sans-serif; font-size: 9px; color: var(--muted); font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+
+/* ── Cards ── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+.card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,0.02);
+}
+.card-title { 
+  font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 3px; 
+  display: flex; align-items: center; gap: 10px; color: var(--lb); text-transform: uppercase;
+}
+.card-title::before { content: ''; width: 20px; height: 2px; background: var(--blue); }
+.card-body { padding: 20px; }
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 20px;
+  font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: 700;
+  cursor: pointer; border: none;
+  transition: all 0.3s; white-space: nowrap;
+  letter-spacing: 2px; text-transform: uppercase;
+  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+}
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-primary { background: var(--blue); color: white; box-shadow: var(--glow-blue); }
+.btn-primary:hover:not(:disabled) { box-shadow: 0 0 30px rgba(0, 48, 135, 0.7); transform: scale(1.02); }
+
+.btn-danger  { background: var(--red);  color: white; box-shadow: var(--glow); }
+.btn-danger:hover:not(:disabled)  { box-shadow: 0 0 35px rgba(200, 16, 46, 0.7); transform: scale(1.02); }
+
+.btn-success { background: var(--green); color: white; }
+.btn-success:hover:not(:disabled) { box-shadow: 0 0 25px rgba(0, 204, 102, 0.5); }
+
+.btn-outline {
+  background: transparent; color: var(--text);
+  border: 1px solid var(--border);
+}
+.btn-outline:hover:not(:disabled) { background: rgba(0,48,135,0.1); border-color: var(--blue); }
+
+.btn-ghost { background: transparent; color: var(--muted); border: none; clip-path: none; padding: 8px; }
+.btn-ghost:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+
+.btn-sm { padding: 6px 14px; font-size: 9px; clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%); }
+
+/* ── Badge / Status ── */
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 2px;
+  font-family: 'Orbitron', sans-serif; font-size: 9px; font-weight: 700; letter-spacing: 1.5px;
+  white-space: nowrap; text-transform: uppercase;
+}
+.badge::before { content:''; width:5px; height:5px; border-radius:50%; flex-shrink:0; }
+.badge-pending   { background:rgba(212, 160, 23, 0.15); color:var(--amber); border:1px solid rgba(212, 160, 23, 0.3); }
+.badge-pending::before { background:var(--amber); }
+.badge-assigned  { background:rgba(0, 48, 135, 0.15); color:var(--lb); border:1px solid rgba(0, 48, 135, 0.3); }
+.badge-assigned::before { background:var(--lb); }
+.badge-on_the_way{ background:rgba(224, 123, 0, 0.15); color:var(--orange); border:1px solid rgba(224, 123, 0, 0.3); }
+.badge-on_the_way::before { background:var(--orange); animation:blink 0.8s infinite; }
+.badge-resolved  { background:rgba(0, 204, 102, 0.12); color:var(--green); border:1px solid rgba(0, 204, 102, 0.3); }
+.badge-resolved::before { background:var(--green); }
+
+/* ── Form controls ── */
+.form-group { margin-bottom: 16px; }
+.form-label {
+  display: block; font-family: 'Orbitron', sans-serif; font-size: 9px; font-weight: 700;
+  letter-spacing: 2px; color: var(--lb);
+  margin-bottom: 8px; text-transform: uppercase;
+}
+.form-control {
+  width: 100%;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  padding: 12px 14px;
+  color: var(--text); font-family: 'Rajdhani', sans-serif; font-size: 14px;
+  outline: none; transition: all 0.2s;
+}
+.form-control:focus { border-color: var(--blue); background: rgba(0,48,135,0.05); }
+.form-control::placeholder { color: var(--muted); }
+
+/* ── Table ── */
+table { width: 100%; border-collapse: collapse; }
+thead th {
+  text-align: left; font-family: 'Orbitron', sans-serif; font-size: 9px; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--lb); padding: 12px 16px;
+  border-bottom: 2px solid var(--border);
+}
+tbody tr { border-bottom: 1px solid var(--border); transition: background 0.2s; cursor: pointer; }
+tbody tr:hover { background: rgba(0,48,135,0.06); }
+tbody td { padding: 14px 16px; font-size: 14px; color: var(--text); vertical-align: middle; }
+
+/* ── Map ── */
+.map-container { height: 420px; border: 1px solid var(--border); position: relative; }
+.map-container .leaflet-tile { filter: brightness(0.6) saturate(0.35) hue-rotate(200deg) !important; }
+
+/* ── Command Center Split View ── */
+.cmd-shell { display: flex; height: 100%; }
+.cmd-left  { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.cmd-right { width: 340px; flex-shrink: 0; border-left: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; background: var(--dark); }
+
+.cmd-map-area { flex: 0 0 350px; position: relative; border-bottom: 2px solid var(--border); }
+#cmdMap { width: 100%; height: 350px; }
+
+.inc-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer; transition: all 0.2s;
+  border-left: 4px solid transparent;
+}
+.inc-row:hover { background: rgba(0,48,135,0.08); }
+.inc-row.active { background: rgba(0,48,135,0.12); border-left-color: var(--blue); }
+.inc-row.p1-row { border-left-color: var(--red); }
+.inc-row.p2-row { border-left-color: var(--orange); }
+
+/* ── Auth Screen ── */
+.auth-screen {
+  position: fixed; inset: 0;
+  background: var(--black);
+  z-index: 9000;
+  display: flex; align-items: center; justify-content: center;
+}
+.auth-screen::before {
+  content: ''; position: absolute; inset: 0; 
+  background-image: linear-gradient(rgba(0,48,135,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,48,135,0.05) 1px,transparent 1px);
+  background-size: 40px 40px; pointer-events: none;
+}
+.auth-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-top: 4px solid var(--red);
+  padding: 40px;
+  width: 100%; max-width: 420px;
+  position: relative; z-index: 1;
+  clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+}
+.auth-logo { display: flex; align-items: center; gap: 15px; margin-bottom: 30px; }
+.auth-logo-text { font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 900; letter-spacing: 3px; color: var(--red); }
+
+/* ── Modals ── */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(8,12,16,0.95); backdrop-filter: blur(10px);
+  z-index: 1000; display: none; align-items: center; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal-box {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--blue);
+  width: 100%; max-width: 500px;
+  clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+}
+
+/* Utils */
+.text-muted { color: var(--muted); }
+.text-lb { color: var(--lb); }
+.w-full { width: 100%; }
+.mt-3 { margin-top: 15px; }
+.mb-4 { margin-bottom: 20px; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     AUTH SCREEN
+     ============================================================ -->
+<div class="auth-screen" id="authScreen">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="logo-icon">🛡️</div>
+      <div>
+        <div class="auth-logo-text">Raksha Force</div>
+        <div class="auth-logo-sub">Command Center — Authorised Access Only</div>
+      </div>
+    </div>
+    <div class="auth-tabs">
+      <div class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Sign In</div>
+      <div class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">Register</div>
+    </div>
+
+    <div id="formLogin">
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input type="email" id="authEmail" class="form-control" placeholder="admin@raksha.force">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" id="authPass" class="form-control" placeholder="••••••••">
+      </div>
+      <button class="btn btn-primary w-full btn-lg mt-3" onclick="doLogin()" id="loginBtn">Sign In to Command Center</button>
+      <button class="btn btn-outline w-full btn-lg mt-2" onclick="skipAuth()" id="guestBtn">Login as Guest (Read-Only)</button>
+    </div>
+
+    <div id="formRegister" style="display:none;">
+      <div class="grid-2" style="gap:10px;">
+        <div class="form-group"><label class="form-label">First Name</label><input type="text" id="regFirst" class="form-control" placeholder="Arjun"></div>
+        <div class="form-group"><label class="form-label">Last Name</label><input type="text" id="regLast" class="form-control" placeholder="Sharma"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Email</label><input type="email" id="regEmail" class="form-control" placeholder="you@email.com"></div>
+      <div class="form-group"><label class="form-label">Password</label><input type="password" id="regPassword" class="form-control" placeholder="Min. 8 characters"></div>
+      <button class="btn btn-primary w-full btn-lg mt-3" onclick="doRegister()" id="registerBtn">Create Admin Account</button>
+      <button class="btn btn-outline w-full btn-lg mt-2" onclick="skipAuth()">Login as Guest (Read-Only)</button>
+    </div>
+
+    <div style="margin-top:16px;text-align:center;">
+      <a href="citizen.html" style="font-size:12px;color:var(--text-3);">← Citizen Portal</a>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     TOAST CONTAINER
+     ============================================================ -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ============================================================
+     BROADCAST MODAL
+     ============================================================ -->
+<div class="modal-overlay" id="broadcastModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">📡 Broadcast Area Alert</div>
+      <button class="btn btn-ghost btn-icon" onclick="closeModal('broadcastModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Title</label><input type="text" id="bTitle" class="form-control" placeholder="e.g. Flood Warning"></div>
+      <div class="form-group"><label class="form-label">Message</label><textarea id="bMsg" class="form-control" placeholder="Alert details for citizens..."></textarea></div>
+      <div class="form-group"><label class="form-label">Affected Area</label><input type="text" id="bArea" class="form-control" placeholder="e.g. Pune City, Maharashtra"></div>
+      <div class="form-group">
+        <label class="form-label">Severity</label>
+        <select id="bSev" class="form-control">
+          <option value="high">🔴 High — Immediate danger</option>
+          <option value="medium">🟠 Medium — Caution advised</option>
+          <option value="low">🟢 Low — Advisory</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('broadcastModal')">Cancel</button>
+      <button class="btn btn-danger" id="broadcastBtn" onclick="submitBroadcast()">📡 Broadcast Now</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD TEAM MODAL -->
+<div class="modal-overlay" id="teamModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">Add Response Team</div>
+      <button class="btn btn-ghost btn-icon" onclick="closeModal('teamModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Team Name</label><input type="text" id="tName" class="form-control" placeholder="Alpha Fire Unit"></div>
+      <div class="form-group"><label class="form-label">Type</label>
+        <select id="tType" class="form-control">
+          <option value="fire">🔥 Fire Brigade</option>
+          <option value="medical">🚑 Medical / Ambulance</option>
+          <option value="police">👮 Police</option>
+          <option value="ndrf">⛑️ NDRF</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Unit Capacity</label><input type="number" id="tCap" class="form-control" value="5" min="1"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('teamModal')">Cancel</button>
+      <button class="btn btn-primary" id="addTeamBtn" onclick="submitAddTeam()">Add Team</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MAIN SHELL
+     ============================================================ -->
+<div class="shell" id="shell" style="display:none;">
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">🛡️</div>
+      <div>
+        <div class="logo-text">Raksha Force</div>
+        <div class="logo-badge">COMMAND CENTER</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Operations</div>
+      <div class="nav-item active" onclick="showPage('dashboard')" data-page="dashboard">
+        <span class="nav-icon">📊</span> Dashboard
+      </div>
+      <div class="nav-item" onclick="showPage('command')" data-page="command">
+        <span class="nav-icon">🗺️</span> Command Center
+        <span class="nav-badge" id="navBadge" style="display:none;">0</span>
+      </div>
+      <div class="nav-item" onclick="showPage('incidents')" data-page="incidents">
+        <span class="nav-icon">🚨</span> Incidents
+      </div>
+      <div class="nav-section-label">Management</div>
+      <div class="nav-item" onclick="showPage('teams')" data-page="teams">
+        <span class="nav-icon">🚑</span> Teams
+      </div>
+      <div class="nav-item" onclick="showPage('resources')" data-page="resources">
+        <span class="nav-icon">🏥</span> Resources
+      </div>
+      <div class="nav-section-label">Communication</div>
+      <div class="nav-item" onclick="showPage('alerts')" data-page="alerts">
+        <span class="nav-icon">📡</span> Area Alerts
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar" id="userAvatar">A</div>
+        <div>
+          <div class="user-name" id="userName">Aryan</div>
+          <div class="user-role">Chief Command Officer</div>
+        </div>
+        <button class="btn-logout" onclick="doLogout()">Sign Out</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── Main ── -->
+  <div class="main">
+    <!-- Topbar -->
+    <header class="topbar">
+      <button class="btn btn-ghost btn-icon" id="menuToggle" onclick="toggleSidebar()" style="display:none;">☰</button>
+      <div class="topbar-title" id="topbarTitle">Dashboard</div>
+      <div class="topbar-spacer"></div>
+      <select id="adminLangSwitch" onchange="alert('Admin translations coming soon!')" style="background:rgba(255,255,255,0.05);color:white;border:1px solid var(--border);font-size:10px;padding:4px 8px;border-radius:4px;margin-right:15px;cursor:pointer;">
+          <option value="en">English</option>
+          <option value="hi">हिन्दी</option>
+          <option value="mr">मराठी</option>
+      </select>
+      <div class="topbar-actions">
+        <button class="btn btn-outline btn-sm" onclick="refreshAll()">↻ Refresh</button>
+        <a href="citizen.html" class="btn btn-outline btn-sm">👤 Citizen View</a>
+        <a href="index.html" class="btn btn-outline btn-sm">← HOME</a>
+      </div>
+    </header>
+
+    <!-- Page area -->
+    <div class="pages">
+
+      <!-- ═══════════ DASHBOARD PAGE ═══════════ -->
+      <div class="page active" id="page-dashboard">
+        <div class="page-title">Dashboard</div>
+        <div class="page-sub">Real-time overview of Raksha Force emergency operations.</div>
+
+        <!-- Stat Cards -->
+        <div class="stats-grid" id="statsGrid">
+          <div class="stat-card red">
+            <div class="stat-top"><span class="stat-icon">🔴</span></div>
+            <div class="stat-value" id="sCritical">—</div>
+            <div class="stat-label">Critical Incidents</div>
+          </div>
+          <div class="stat-card blue">
+            <div class="stat-top"><span class="stat-icon">🚨</span></div>
+            <div class="stat-value" id="sActive">—</div>
+            <div class="stat-label">Active Cases</div>
+          </div>
+          <div class="stat-card warn">
+            <div class="stat-top"><span class="stat-icon">⏳</span></div>
+            <div class="stat-value" id="sPending">—</div>
+            <div class="stat-label">Pending Reports</div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-top"><span class="stat-icon">✅</span></div>
+            <div class="stat-value" id="sResolved">—</div>
+            <div class="stat-label">Resolved Today</div>
+          </div>
+          <div class="stat-card purple">
+            <div class="stat-top"><span class="stat-icon">🚑</span></div>
+            <div class="stat-value" id="sTeamsAvail">—</div>
+            <div class="stat-label">Teams Available</div>
+          </div>
+        </div>
+
+        <!-- GPS + Recent -->
+        <div class="grid-7-5" style="margin-bottom:16px;">
+          <!-- Live GPS Map -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">📍 Admin GPS Location</div>
+              <div id="gpsWidget"></div>
+            </div>
+            <div class="card-body" style="padding:0;">
+              <div id="dashMap" style="height:280px;"></div>
+            </div>
+          </div>
+          <!-- Quick actions + SOS feed -->
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div class="card">
+              <div class="card-header"><div class="card-title">⚡ Quick Actions</div></div>
+              <div class="card-body" style="display:flex;flex-direction:column;gap:8px;">
+                <button class="btn btn-danger w-full" style="justify-content:center;" onclick="openModal('broadcastModal')">📡 Broadcast Emergency Alert</button>
+                <button class="btn btn-primary w-full" style="justify-content:center;" onclick="showPage('command')">🗺️ Open Command Center</button>
+                <button class="btn btn-outline w-full" style="justify-content:center;" onclick="openModal('teamModal')">+ Add Response Team</button>
+                <button class="btn btn-outline w-full" style="justify-content:center;" onclick="showPage('incidents')">📋 View All Incidents</button>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header"><div class="card-title">🆘 Recent SOS</div></div>
+              <div id="sosFeed" style="max-height:160px;overflow-y:auto;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Area Alerts + Type Chart -->
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">🔔 Active Area Alerts</div>
+              <div class="card-actions">
+                <button class="btn btn-outline btn-sm" onclick="openModal('broadcastModal')">+ New</button>
+              </div>
+            </div>
+            <div id="dashAlerts" style="max-height:220px;overflow-y:auto;"></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">📊 Incidents by Type</div></div>
+            <div class="card-body">
+              <div class="bar-chart" id="typeChart">
+                <div style="color:var(--text-3);font-size:12px;">Loading...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════ COMMAND CENTER PAGE ═══════════ -->
+      <div class="page" id="page-command" style="padding:0;overflow:hidden;">
+        <div class="cmd-shell">
+          <div class="cmd-left">
+            <!-- Map -->
+            <div class="cmd-map-area">
+              <div id="cmdMap"></div>
+              <div class="cmd-hud">
+                <div class="hud-card">
+                  <div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--text-3);text-transform:uppercase;margin-bottom:6px;">Live Status</div>
+                  <div class="hud-row"><span class="hud-label">🔴 Critical</span><span class="hud-value" id="hudCrit" style="color:var(--danger);">0</span></div>
+                  <div class="hud-row"><span class="hud-label">🟠 Active</span><span class="hud-value" id="hudActive" style="color:#F97316;">0</span></div>
+                  <div class="hud-row"><span class="hud-label">⏳ Pending</span><span class="hud-value" id="hudPending" style="color:var(--warn);">0</span></div>
+                  <div class="hud-row"><span class="hud-label">✅ Resolved</span><span class="hud-value" id="hudResolved" style="color:var(--success);">0</span></div>
+                </div>
+                <div class="hud-card">
+                  <div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--text-3);text-transform:uppercase;margin-bottom:6px;">Team Status</div>
+                  <div class="hud-row"><span class="hud-label">🟢 Available</span><span class="hud-value" id="hudAvail" style="color:var(--success);">0</span></div>
+                  <div class="hud-row"><span class="hud-label">🟠 Busy</span><span class="hud-value" id="hudBusy" style="color:#F97316;">0</span></div>
+                </div>
+              </div>
+              <div class="layer-controls">
+                <button class="layer-btn on" id="layerInc" onclick="toggleLayer('incidents')">Incidents</button>
+                <button class="layer-btn on" id="layerTeams" onclick="toggleLayer('teams')">Teams</button>
+                <button class="layer-btn on" id="layerRes" onclick="toggleLayer('resources')">Resources</button>
+              </div>
+            </div>
+            <!-- Incident list -->
+            <div class="cmd-list-area">
+              <div class="cmd-list-header">
+                <span style="font-size:12px;font-weight:600;color:var(--text-2);">ACTIVE INCIDENTS</span>
+                <select class="filter-select" id="cmdFilter" onchange="loadCmdList()">
+                  <option value="">All Status</option>
+                  <option value="pending">Pending</option>
+                  <option value="assigned">Assigned</option>
+                  <option value="on_the_way">On The Way</option>
+                </select>
+                <div class="filter-spacer"></div>
+                <span class="result-count" id="cmdCount">—</span>
+              </div>
+              <div class="cmd-list-body" id="cmdList"></div>
+            </div>
+          </div>
+
+          <!-- Right Detail Panel -->
+          <div class="cmd-right detail-panel">
+            <div class="dp-header">
+              <div class="dp-title" id="dpTitle">Select an incident</div>
+            </div>
+            <div class="dp-body" id="dpBody">
+              <div class="empty-state">
+                <div class="empty-icon">🗺️</div>
+                <div class="empty-text">No incident selected</div>
+                <div class="empty-sub">Click any incident to view details and assign a response team.</div>
+              </div>
+            </div>
+            <div class="dp-footer" id="dpFooter" style="display:none;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════ INCIDENTS PAGE ═══════════ -->
+      <div class="page" id="page-incidents">
+        <div class="page-title">Incident Reports</div>
+        <div class="page-sub">All emergency reports with filtering, priority management and assignment.</div>
+        <div class="card">
+          <div class="filters-bar">
+            <input type="text" id="incSearch" class="search-input" placeholder="🔍 Search incidents..." oninput="filterIncidents()">
+            <select class="filter-select" id="incTypeFilter" onchange="loadFullIncidents()">
+              <option value="">All Types</option>
+              <option value="fire">🔥 Fire</option>
+              <option value="medical">🚑 Medical</option>
+              <option value="police">👮 Police</option>
+              <option value="ambulance">🏥 Ambulance</option>
+              <option value="fire_brigade">🚒 Fire Brigade</option>
+              <option value="accident">🚗 Accident</option>
+              <option value="flood">🌊 Flood</option>
+              <option value="women">🛡️ Women Safety</option>
+              <option value="missing">🔍 Missing</option>
+              <option value="other">⚠️ Other</option>
+            </select>
+            <select class="filter-select" id="incStatusFilter" onchange="loadFullIncidents()">
+              <option value="">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="assigned">Assigned</option>
+              <option value="on_the_way">On The Way</option>
+              <option value="resolved">Resolved</option>
+            </select>
+            <select class="filter-select" id="incPriorityFilter" onchange="loadFullIncidents()">
+              <option value="">All Priority</option>
+              <option value="1">P1 — Critical</option>
+              <option value="2">P2 — High</option>
+              <option value="3">P3 — Medium</option>
+              <option value="4">P4 — Low</option>
+            </select>
+            <div class="filter-spacer"></div>
+            <button class="btn btn-outline btn-sm" onclick="loadFullIncidents()">↻ Refresh</button>
+            <span class="result-count" id="incCount">—</span>
+          </div>
+          <div class="table-wrapper">
+            <table id="incTable">
+              <thead>
+                <tr>
+                  <th>Priority</th>
+                  <th>Type</th>
+                  <th>Description</th>
+                  <th>Location</th>
+                  <th>Reporter</th>
+                  <th>Status</th>
+                  <th>Submitted</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="incTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════ TEAMS PAGE ═══════════ -->
+      <div class="page" id="page-teams">
+        <div class="page-title">Response Teams</div>
+        <div class="page-sub">Manage all field response units and their deployment status.</div>
+        <div style="display:flex;justify-content:flex-end;margin-bottom:16px;">
+          <button class="btn btn-primary" onclick="openModal('teamModal')">+ Add Team</button>
+        </div>
+        <div id="teamsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;"></div>
+      </div>
+
+      <!-- ═══════════ RESOURCES PAGE ═══════════ -->
+      <div class="page" id="page-resources">
+        <div class="page-title">Resource Management</div>
+        <div class="page-sub">Track hospital bed availability, emergency shelters and equipment depots.</div>
+        <div id="resourcesGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;"></div>
+      </div>
+
+      <!-- ═══════════ ALERTS PAGE ═══════════ -->
+      <div class="page" id="page-alerts">
+        <div class="page-title">Area Alerts</div>
+        <div class="page-sub">Broadcast emergency alerts and advisories to citizens in affected areas.</div>
+        <div style="display:flex;justify-content:flex-end;margin-bottom:16px;">
+          <button class="btn btn-danger" onclick="openModal('broadcastModal')">📡 New Broadcast</button>
+        </div>
+        <div class="card">
+          <div id="alertsTable">
+            <div class="empty-state" style="padding:40px;"><div class="empty-icon">📡</div><div class="empty-text">Loading alerts...</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════ ANALYTICS PAGE ═══════════ -->
+      <div class="page" id="page-analytics">
+        <div class="page-title">Analytics</div>
+        <div class="page-sub">Incident trends, response performance and team efficiency metrics.</div>
+        <div class="stats-grid" id="analyticsStats"></div>
+        <div class="grid-2" style="margin-bottom:16px;">
+          <div class="card">
+            <div class="card-header"><div class="card-title">📊 Incidents by Type</div></div>
+            <div class="card-body"><div class="bar-chart" id="analyticsTypeChart"></div></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">🔄 Status Distribution</div></div>
+            <div class="card-body"><div class="bar-chart" id="analyticsStatusChart"></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">🕒 Recent Activity</div></div>
+          <div class="table-wrapper">
+            <table><thead><tr><th>Priority</th><th>Type</th><th>Location</th><th>Status</th><th>Time</th></tr></thead>
+            <tbody id="activityTable"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /pages -->
+  </div><!-- /main -->
+</div><!-- /shell -->
+
+<!-- ─── Scripts ─────────────────────────────────────────────── -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/utils.js"></script>
+<script src="assets/js/gps.js"></script>
+<script src="assets/js/supabase-client.js"></script>
+<script>
+/* ============================================================
+   CONSTANTS
+   ============================================================ */
+const ICONS = {
+  fire:'🔥', medical:'🚑', police:'👮', ambulance:'🏥',
+  fire_brigade:'🚒', accident:'🚗', flood:'🌊', women:'🛡️',
+  child:'👶', missing:'🔍', other:'⚠️',
+};
+const TEAM_ICONS = { fire:'🚒', medical:'🚑', police:'🚓', ndrf:'⛑️' };
+const P_COLORS = { 1:'#EF4444', 2:'#F97316', 3:'#F59E0B', 4:'#10B981' };
+const BASE = [19.1200, 72.8500]; // Western Mumbai center
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let _sb, currentUser = null;
+let dashMap = null, cmdMap = null;
+let incidentLayer, teamLayer, resourceLayer;
+let layers = { incidents:true, teams:true, resources:true };
+let selectedIncId = null;
+let gpsManager = null;
+let realtimeSub = null, sosSub = null;
+let allIncidents = []; // cache for client-side search
+
+/* ============================================================
+   INIT
+   ============================================================ */
+window.addEventListener('load', () => {
+  initSupabase();
+  startClock();
+  checkSession();
+});
+
+function initSupabase() {
+  _sb = window.RF.client();
+  // test connection
+  _sb.from('incident_reports').select('id',{count:'exact',head:true})
+    .then(({error}) => setDBStatus(!error))
+    .catch(() => setDBStatus(false));
+}
+
+function setDBStatus(ok) {
+  const chip = document.getElementById('dbChip');
+  chip.className = 'chip ' + (ok ? 'chip-db-ok' : 'chip-db-err');
+  document.getElementById('dbStatus').textContent = ok ? 'Supabase Connected' : 'DB Error';
+}
+
+async function checkSession() {
+  const { data: { session } } = await _sb.auth.getSession();
+  if (session?.user) {
+    currentUser = session.user;
+    // Check role
+    const { data: profile } = await _sb.from('profiles').select('role').eq('id', currentUser.id).single();
+    if (profile && profile.role === 'admin') {
+      bootApp();
+    } else {
+      toast('Access denied. Admin role required.', 'error');
+      setTimeout(() => window.location.href = 'citizen.html', 2000);
+    }
+  } else {
+    // If no session, check for guest mode in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('guest') === 'true') {
+      skipAuth();
+    } else {
+      // Show auth screen (don't redirect to index yet to allow guest login here)
+      document.getElementById('authScreen').style.display = 'flex';
+    }
+  }
+}
+
+async function doLogin() {
+  const btn = document.getElementById('loginBtn');
+  const email = document.getElementById('authEmail').value.trim();
+  const pass  = document.getElementById('authPass').value;
+  if (!email || !pass) { toast('Please fill in all fields.', 'warn'); return; }
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  try {
+    const data = await window.RF.login(email, pass);
+    currentUser = data.user;
+  } catch (error) {
+    btn.disabled = false; btn.textContent = 'Sign In to Command Center';
+    toast(error.message, 'error');
+    return;
+  }
+  btn.disabled = false; btn.textContent = 'Sign In to Command Center';
+  if (currentUser?.role === 'admin') {
+    bootApp();
+  } else {
+    toast('Access denied. Admin role required.', 'error');
+    setTimeout(() => window.location.href = 'citizen.html', 2000);
+  }
+}
+
+async function doRegister() {
+  const btn = document.getElementById('registerBtn');
+  const email = document.getElementById('regEmail').value.trim();
+  const pass  = document.getElementById('regPassword').value;
+  const first = document.getElementById('regFirst').value.trim();
+  const last  = document.getElementById('regLast').value.trim();
+  if (!email || !pass) { toast('Email and password required.', 'warn'); return; }
+  if (pass.length < 8)  { toast('Password must be at least 8 characters.', 'warn'); return; }
+  btn.disabled = true; btn.textContent = 'Creating account…';
+  try {
+    const data = await window.RF.register({
+      email,
+      password: pass,
+      full_name: `${first} ${last}`.trim(),
+      role: 'admin',
+    });
+    currentUser = data.user;
+  } catch (error) {
+    btn.disabled = false; btn.textContent = 'Create Admin Account';
+    toast(error.message, 'error');
+    return;
+  }
+  btn.disabled = false; btn.textContent = 'Create Admin Account';
+  toast('Account created! Check your email to verify.', 'success');
+  bootApp();
+}
+
+function skipAuth() { bootApp(); }
+
+async function doLogout() {
+  await window.RF.logout();
+  if (realtimeSub) _sb.removeChannel(realtimeSub);
+  if (sosSub)      _sb.removeChannel(sosSub);
+  if (gpsManager)  gpsManager.stop();
+  window.location.href = 'index.html';
+}
+
+function switchAuthTab(tab) {
+  document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+  document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+  document.getElementById('formLogin').style.display   = tab === 'login'    ? '' : 'none';
+  document.getElementById('formRegister').style.display = tab === 'register' ? '' : 'none';
+}
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+function bootApp() {
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('shell').style.display = 'flex';
+
+  // set user info
+  const name = currentUser?.user_metadata?.full_name || currentUser?.email?.split('@')[0] || 'Admin';
+  document.getElementById('userName').textContent = name;
+  document.getElementById('userAvatar').textContent = name[0].toUpperCase();
+
+  // init GPS
+  initAdminGPS();
+
+  // load initial data
+  refreshAll();
+
+  // real-time subscriptions
+  realtimeSub = _sb.channel('admin-incidents')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'incident_reports' }, () => refreshAll())
+    .subscribe();
+  sosSub = _sb.channel('admin-sos')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'sos_alerts' }, () => loadSOSFeed())
+    .subscribe();
+
+  // auto refresh
+  setInterval(refreshAll, 20000);
+
+  // responsive menu toggle
+  if (window.innerWidth <= 900) {
+    document.getElementById('menuToggle').style.display = '';
+  }
+}
+
+/* ============================================================
+   GPS — ADMIN
+   ============================================================ */
+function initAdminGPS() {
+  gpsManager = new GPSManager({
+    context: 'admin',
+    userId: currentUser?.id || null,
+    saveToDb: !!currentUser,
+    onUpdate: (pos) => {
+      updateGPSDisplay(pos);
+      if (dashMap) dashMap.setView([pos.lat, pos.lng], 14);
+    },
+    onError: (msg) => {
+      updateGPSDisplay(null, msg);
+    },
+  });
+
+  renderGPSWidget('gpsWidget', gpsManager);
+  gpsManager.start();
+
+  // init dashboard map
+  setTimeout(() => {
+    initDashMap();
+    gpsManager.setMap(dashMap);
+  }, 200);
+}
+
+function updateGPSDisplay(pos, errMsg) {
+  const el = document.getElementById('gpsWidget');
+  if (!el) return;
+  if (pos) {
+    el.innerHTML = `
+      <div class="gps-panel">
+        <div class="gps-pulse active"></div>
+        <div>
+          <div class="gps-coords-text">${pos.lat.toFixed(5)}, ${pos.lng.toFixed(5)}</div>
+          <div class="text-xs text-muted">±${Math.round(pos.accuracy||0)}m accuracy</div>
+        </div>
+      </div>`;
+  } else {
+    el.innerHTML = `
+      <div class="gps-panel" style="border-color:rgba(239,68,68,0.3);">
+        <div class="gps-pulse error"></div>
+        <div class="text-xs" style="color:var(--danger);">${errMsg||'GPS unavailable'}</div>
+      </div>`;
+  }
+}
+
+function initDashMap() {
+  if (dashMap) return;
+  dashMap = L.map('dashMap', { zoomControl: true, attributionControl: false }).setView(BASE, 12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(dashMap);
+  
+  dashMap.on('moveend', () => {
+    const c = dashMap.getCenter();
+    loadRealWorldInfrastructure(c.lat, c.lng, dashMap); // Note: dashMap doesn't have layers yet, but loadRealWorldInfrastructure adds to map/layer
+  });
+}
+
+/* ============================================================
+   COMMAND CENTER MAP
+   ============================================================ */
+let cmdMapInited = false;
+function initCmdMap() {
+  if (cmdMapInited) return;
+  cmdMapInited = true;
+  cmdMap = L.map('cmdMap', { zoomControl: true, attributionControl: false }).setView(BASE, 12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(cmdMap);
+  incidentLayer  = L.layerGroup().addTo(cmdMap);
+  teamLayer      = L.layerGroup().addTo(cmdMap);
+  resourceLayer  = L.layerGroup().addTo(cmdMap);
+  
+  cmdMap.on('moveend', () => {
+    const c = cmdMap.getCenter();
+    loadRealWorldInfrastructure(c.lat, c.lng, teamLayer);
+  });
+
+  loadCmdMapData();
+}
+
+async function loadCmdMapData() {
+  if (!cmdMap) return;
+  incidentLayer.clearLayers();
+  teamLayer.clearLayers();
+  resourceLayer.clearLayers();
+
+  const [incRes, teamRes, resRes] = await Promise.all([
+    _sb.from('incident_reports').select('*').neq('status','resolved').limit(80),
+    _sb.from('teams').select('*'),
+    _sb.from('resources').select('*'),
+  ]);
+
+  // Incidents
+  if (layers.incidents && incRes.data) {
+    incRes.data.forEach(inc => {
+      if (!inc.latitude || !inc.longitude) return;
+      const color = P_COLORS[inc.priority] || P_COLORS[3];
+      const icon = L.divIcon({
+        html: `<div style="width:30px;height:30px;background:${color};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.5),0 0 0 3px ${color}44;cursor:pointer;">${ICONS[inc.emergency_type]||'⚠️'}</div>`,
+        className: '', iconAnchor: [15,15],
+      });
+      L.marker([inc.latitude, inc.longitude], { icon })
+        .addTo(incidentLayer)
+        .on('click', () => { showPage('command'); selectIncident(inc.id); });
+    });
+  }
+
+  // Teams
+  if (layers.teams && teamRes.data) {
+    teamRes.data.forEach(t => {
+      if (!t.latitude || !t.longitude) return;
+      const color = t.status === 'available' ? '#10B981' : t.status === 'busy' ? '#F97316' : '#64748B';
+      const icon = L.divIcon({
+        html: `<div style="width:26px;height:26px;background:${color};border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);">${TEAM_ICONS[t.type]||'🚑'}</div>`,
+        className: '', iconAnchor: [13,13],
+      });
+      L.marker([t.latitude, t.longitude], { icon })
+        .addTo(teamLayer)
+        .bindPopup(`<b>${t.name}</b><br>${t.type.toUpperCase()} — ${t.status}`);
+    });
+  }
+
+  // Resources
+  if (layers.resources && resRes.data) {
+    resRes.data.forEach(r => {
+      if (!r.latitude || !r.longitude) return;
+      const icon = L.divIcon({
+        html: `<div style="width:24px;height:24px;background:#3B82F6;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;border:2px solid white;">${r.type==='hospital'?'🏥':r.type==='shelter'?'🏠':'📦'}</div>`,
+        className: '', iconAnchor: [12,12],
+      });
+      L.marker([r.latitude, r.longitude], { icon })
+        .addTo(resourceLayer)
+        .bindPopup(`<b>${r.name}</b><br>Available: ${r.available_capacity}/${r.total_capacity}`);
+    });
+  }
+
+  updateHUD(incRes.data||[], teamRes.data||[]);
+  
+  // Load initial infrastructure for Mumbai Western corridor
+  const center = cmdMap.getCenter();
+  loadRealWorldInfrastructure(center.lat, center.lng, teamLayer);
+}
+
+// Global cache to avoid redundant Overpass calls
+let infraCache = new Set();
+
+async function loadRealWorldInfrastructure(lat, lng, layer) {
+  try {
+    // Search in a 10km radius (increased for Mumbai coverage)
+    const query = `[out:json][timeout:25];(node["amenity"="hospital"](around:10000, ${lat}, ${lng});node["amenity"="fire_station"](around:10000, ${lat}, ${lng});node["amenity"="police"](around:10000, ${lat}, ${lng});node["emergency"="ambulance_station"](around:10000, ${lat}, ${lng}););out body;`;
+    const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    
+    if (data.elements) {
+      data.elements.forEach(el => {
+        if (infraCache.has(el.id)) return;
+        infraCache.add(el.id);
+
+        const tags = el.tags || {};
+        const type = tags.amenity || tags.emergency;
+        let iconEmoji = '🚑';
+        let color = '#3B82F6';
+        
+        // Famous Hospital check (simple name matching for demo)
+        const isFamous = ["Lilavati", "Nanavati", "Kokilaben", "Jaslok", "Breach Candy", "Harkisondas", "Cooper", "KEM", "Sion", "Nair"].some(f => tags.name?.includes(f));
+        
+        if (type === 'fire_station') { iconEmoji = '🚒'; color = '#EF4444'; }
+        else if (type === 'police') { iconEmoji = '🚓'; color = '#1E3A8A'; }
+        else if (type === 'hospital') { 
+          iconEmoji = '🏥'; 
+          color = isFamous ? '#D4A017' : '#10B981'; // Gold for famous hospitals
+        }
+        
+        const phone = tags.phone || tags['contact:phone'] || (type==='police'?'100':type==='fire_station'?'101':'102') + ' / 112';
+        
+        const icon = L.divIcon({
+          html: `<div style="width:${isFamous?34:28}px;height:${isFamous?34:28}px;background:${color};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:${isFamous?16:14}px;border:2px solid white;box-shadow:0 2px 10px rgba(0,0,0,0.4); z-index: ${isFamous?1000:1};">${iconEmoji}</div>`,
+          className: '', iconAnchor: [isFamous?17:14, isFamous?17:14]
+        });
+        
+        L.marker([el.lat, el.lon], { icon })
+          .addTo(layer)
+          .bindPopup(`<div style="font-family:'Rajdhani',sans-serif;"><b style="color:${color}">${tags.name || 'Emergency Unit'}</b>${isFamous?' <span style="font-size:9px;background:var(--amber);color:black;padding:1px 4px;border-radius:2px;">FAMOUS</span>':''}<br><small>${type.replace('_',' ').toUpperCase()}</small><br><div style="margin-top:5px;font-weight:700;color:var(--red);">📞 ${phone}</div></div>`);
+      });
+    }
+  } catch (err) {
+    console.error('Overpass error:', err);
+  }
+}
+
+function toggleLayer(name) {
+  layers[name] = !layers[name];
+  const idMap = { incidents:'layerInc', teams:'layerTeams', resources:'layerRes' };
+  document.getElementById(idMap[name]).classList.toggle('on', layers[name]);
+  loadCmdMapData();
+}
+
+function updateHUD(incs, teams) {
+  document.getElementById('hudCrit').textContent    = incs.filter(i=>i.priority===1).length;
+  document.getElementById('hudActive').textContent   = incs.filter(i=>['assigned','on_the_way'].includes(i.status)).length;
+  document.getElementById('hudPending').textContent  = incs.filter(i=>i.status==='pending').length;
+  document.getElementById('hudResolved').textContent = incs.filter(i=>i.status==='resolved').length;
+  document.getElementById('hudAvail').textContent    = teams.filter(t=>t.status==='available').length;
+  document.getElementById('hudBusy').textContent     = teams.filter(t=>t.status==='busy').length;
+}
+
+/* ============================================================
+   COMMAND CENTER LIST
+   ============================================================ */
+async function loadCmdList() {
+  const filter = document.getElementById('cmdFilter').value;
+  let q = _sb.from('incident_reports').select('*')
+    .neq('status','resolved').order('priority').order('created_at',{ascending:false}).limit(40);
+  if (filter) q = q.eq('status', filter);
+  const { data } = await q;
+  const el = document.getElementById('cmdList');
+  document.getElementById('cmdCount').textContent = `${data?.length||0} incidents`;
+  if (!data?.length) { el.innerHTML = '<div class="empty-state" style="padding:30px;"><div class="empty-icon">✅</div><div class="empty-text">No active incidents</div></div>'; return; }
+  el.innerHTML = data.map(d => `
+    <div class="inc-row p${d.priority||3}-row ${d.id===selectedIncId?'active':''}" onclick="selectIncident('${d.id}')">
+      <div class="p-dot p${d.priority||3}" style="flex-shrink:0;"></div>
+      <span class="inc-icon">${ICONS[d.emergency_type]||'⚠️'}</span>
+      <div class="inc-body">
+        <div class="inc-type">${(d.emergency_type||'').replace(/_/g,' ').toUpperCase()}</div>
+        <div class="inc-loc">${d.location||'Location not set'}</div>
+      </div>
+      <div class="inc-right">
+        <span class="badge badge-${d.status}">${d.status?.replace(/_/g,' ')}</span>
+        <div class="inc-time">${timeAgo(d.created_at)}</div>
+      </div>
+    </div>`).join('');
+}
+
+/* ============================================================
+   INCIDENT DETAIL PANEL
+   ============================================================ */
+async function selectIncident(id) {
+  selectedIncId = id;
+  // refresh list to show selection
+  if (document.getElementById('page-command').classList.contains('active')) loadCmdList();
+
+  const { data: inc, error } = await _sb.from('incident_reports').select('*').eq('id',id).single();
+  if (error || !inc) return;
+
+  document.getElementById('dpTitle').textContent = `${ICONS[inc.emergency_type]||'⚠️'} ${(inc.emergency_type||'').replace(/_/g,' ')}`;
+
+  // get teams
+  const { data: teams } = await _sb.from('teams').select('*').eq('status','available');
+  const teamOpts = (teams||[]).map(t=>`<option value="${t.id}">${TEAM_ICONS[t.type]||'🚑'} ${t.name}</option>`).join('');
+
+  // get assigned team
+  let assignedTeamHtml = '';
+  if (inc.assigned_team_id) {
+    const { data: at } = await _sb.from('teams').select('*').eq('id',inc.assigned_team_id).single();
+    if (at) assignedTeamHtml = `
+      <div style="display:flex;align-items:center;gap:8px;padding:8px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:7px;margin-bottom:10px;font-size:12px;">
+        <span>${TEAM_ICONS[at.type]||'🚑'}</span>
+        <div><div style="font-weight:600;">${at.name}</div><div style="color:var(--text-2);">${at.type} · <span class="badge badge-${at.status}" style="font-size:9px;">${at.status}</span></div></div>
+      </div>`;
+  }
+
+  // chat
+  const { data: msgs } = await _sb.from('incident_messages').select('*').eq('incident_id',id).order('created_at').limit(30);
+  const chatHtml = msgs?.length
+    ? msgs.map(m=>`<div class="chat-bubble ${m.sender_role==='citizen'?'other':'mine'}"><div class="chat-meta">${m.sender_role?.toUpperCase()} · ${m.sender_name||'?'}</div>${m.message}</div>`).join('')
+    : '<div style="text-align:center;font-size:11px;color:var(--text-3);padding:10px;">No messages yet</div>';
+
+  // priority steps
+  const statusOrder = ['pending','assigned','on_the_way','resolved'];
+  const curIdx = statusOrder.indexOf(inc.status);
+
+  document.getElementById('dpBody').innerHTML = `
+    <!-- Progress -->
+    <div class="dp-section">
+      <div class="dp-section-label">Response Progress</div>
+      <div class="progress-steps">
+        <div class="ps-step ${curIdx>0?'done':curIdx===0?'current':''}"><div class="ps-circle">📝</div><div class="ps-label">Reported</div></div>
+        <div class="ps-step ${curIdx>1?'done':curIdx===1?'current':''}"><div class="ps-circle">✅</div><div class="ps-label">Assigned</div></div>
+        <div class="ps-step ${curIdx>2?'done':curIdx===2?'current':''}"><div class="ps-circle">🚗</div><div class="ps-label">En Route</div></div>
+        <div class="ps-step ${curIdx===3?'done':''}"><div class="ps-circle">✓</div><div class="ps-label">Resolved</div></div>
+      </div>
+    </div>
+
+    <!-- Info -->
+    <div class="dp-section">
+      <div class="dp-section-label">Incident Details</div>
+      <div class="dp-row"><span class="dp-key">Reference</span><span class="dp-val font-mono" style="font-size:11px;">RF-${id.substr(0,8).toUpperCase()}</span></div>
+      <div class="dp-row"><span class="dp-key">Priority</span><span class="dp-val" style="color:${P_COLORS[inc.priority||3]};">P${inc.priority||3}</span></div>
+      <div class="dp-row"><span class="dp-key">Status</span><span class="dp-val"><span class="badge badge-${inc.status}">${inc.status?.replace(/_/g,' ')}</span></span></div>
+      <div class="dp-row"><span class="dp-key">Location</span><span class="dp-val truncate" style="max-width:160px;" title="${inc.location||''}">${inc.location||'—'}</span></div>
+      <div class="dp-row"><span class="dp-key">GPS</span><span class="dp-val font-mono" style="font-size:10px;">${inc.latitude?`${inc.latitude.toFixed(4)},${inc.longitude.toFixed(4)}`:'—'}</span></div>
+      <div class="dp-row"><span class="dp-key">Reporter</span><span class="dp-val">${inc.reporter_name||'Anonymous'}</span></div>
+      <div class="dp-row"><span class="dp-key">Phone</span><span class="dp-val">${inc.phone||'—'}</span></div>
+      <div class="dp-row"><span class="dp-key">Submitted</span><span class="dp-val" style="font-size:11px;">${timeAgo(inc.created_at)}</span></div>
+    </div>
+
+    <div class="dp-section">
+      <div class="dp-section-label">Description</div>
+      <div style="font-size:12px;color:var(--text-2);line-height:1.6;padding:10px;background:var(--surface2);border-radius:6px;">${inc.description||'No description provided.'}</div>
+    </div>
+
+    <!-- AI Analysis -->
+    <div class="dp-section">
+      <div class="dp-section-label">AI Recommendation</div>
+      <div class="alert alert-info" style="font-size:12px;">${getAIRecommendation(inc.emergency_type, inc.priority)}</div>
+    </div>
+
+    <!-- Assign team -->
+    <div class="dp-section">
+      <div class="dp-section-label">Team Assignment</div>
+      ${assignedTeamHtml}
+      <div class="form-group">
+        <label class="form-label">Assign Team</label>
+        <select id="dpTeamSel" class="form-control" style="font-size:12px;">${teamOpts||'<option>No teams available</option>'}</select>
+      </div>
+      <div class="flex gap-2 mt-2">
+        <input type="number" id="dpETA" class="form-control" value="${Math.floor(5+Math.random()*10)}" min="1" placeholder="ETA (min)" style="width:90px;font-size:12px;">
+        <button class="btn btn-primary btn-sm" onclick="doAssign('${id}')">Assign</button>
+        <button class="btn btn-success btn-sm" onclick="doUpdateStatus('${id}','on_the_way')">On Way</button>
+      </div>
+    </div>
+
+    <!-- Chat -->
+    <div class="dp-section">
+      <div class="dp-section-label">Incident Chat</div>
+      <div class="chat-window" id="dpChat">${chatHtml}</div>
+      <div class="flex gap-2">
+        <input type="text" id="dpChatInput" class="form-control" placeholder="Reply to citizen…" style="flex:1;font-size:12px;" onkeydown="if(event.key==='Enter')doCmdChat('${id}')">
+        <button class="btn btn-outline btn-sm" onclick="doCmdChat('${id}')">Send</button>
+      </div>
+    </div>`;
+
+  document.getElementById('dpFooter').style.display = 'flex';
+  document.getElementById('dpFooter').innerHTML = `
+    <button class="btn btn-danger btn-sm" onclick="doUpdateStatus('${id}','resolved')">✓ Mark Resolved</button>
+    <button class="btn btn-outline btn-sm" onclick="focusMap(${inc.latitude||BASE[0]},${inc.longitude||BASE[1]})">🗺️ Zoom Map</button>
+    <button class="btn btn-ghost btn-sm ml-auto" onclick="doUpdateStatus('${id}','pending')">↩ Reset</button>`;
+
+  // scroll chat to bottom
+  setTimeout(() => { const c=document.getElementById('dpChat'); if(c)c.scrollTop=c.scrollHeight; }, 50);
+}
+
+function getAIRecommendation(type, priority) {
+  const map = {
+    fire: 'Deploy fire brigade immediately. Medical standby recommended. Evacuate 200m radius.',
+    medical: 'Dispatch ambulance. Pre-alert nearest hospital emergency ward.',
+    police: 'Assign patrol unit. Crime unit standby if violent incident.',
+    ambulance: 'Nearest ambulance dispatch. Hospital bed pre-allocation advised.',
+    fire_brigade: 'Fire suppression team required. Utility shutdown may be needed.',
+    flood: 'NDRF activation. Rescue boats + high-ground evacuation.',
+    women: 'Women safety unit + police dispatch. Shelter coordination.',
+    accident: 'Traffic control + ambulance. Route diversion recommended.',
+    missing: 'Patrol expansion + surveillance activation.',
+    other: 'Dispatch nearest available unit. Assess on arrival.',
+  };
+  const pNote = priority === 1 ? ' ⚠️ **CRITICAL** — all available units recommended.' : '';
+  return (map[type] || 'Assess and assign appropriate unit.') + pNote;
+}
+
+async function doAssign(incidentId) {
+  const teamId = document.getElementById('dpTeamSel')?.value;
+  const eta    = parseInt(document.getElementById('dpETA')?.value) || 10;
+  if (!teamId) { toast('Select a team first.', 'warn'); return; }
+
+  await _sb.from('assignments').delete().eq('incident_id', incidentId);
+  await _sb.from('assignments').insert([{ incident_id: incidentId, team_id: teamId, eta_minutes: eta }]);
+  await _sb.from('incident_reports').update({ status:'assigned', assigned_team_id: teamId, updated_at: new Date().toISOString() }).eq('id', incidentId);
+
+  const { data: team } = await _sb.from('teams').select('current_load').eq('id',teamId).single();
+  await _sb.from('teams').update({ status:'busy', current_load:(team?.current_load||0)+1 }).eq('id',teamId);
+
+  toast('Team assigned successfully!', 'success');
+  selectIncident(incidentId);
+  refreshAll();
+}
+
+async function doUpdateStatus(incidentId, status) {
+  await _sb.from('incident_reports').update({ status, updated_at: new Date().toISOString() }).eq('id', incidentId);
+  if (status === 'resolved') {
+    const { data: inc } = await _sb.from('incident_reports').select('assigned_team_id').eq('id',incidentId).single();
+    if (inc?.assigned_team_id) {
+      const { data: t } = await _sb.from('teams').select('current_load').eq('id',inc.assigned_team_id).single();
+      const load = Math.max(0,(t?.current_load||1)-1);
+      await _sb.from('teams').update({ status: load===0?'available':'busy', current_load:load }).eq('id',inc.assigned_team_id);
+    }
+  }
+  toast(`Status updated to "${status}"`, 'success');
+  selectIncident(incidentId);
+  refreshAll();
+}
+
+async function doCmdChat(incidentId) {
+  const input = document.getElementById('dpChatInput');
+  const msg = input?.value?.trim();
+  if (!msg) return;
+  input.value = '';
+  const name = currentUser?.user_metadata?.full_name || currentUser?.email?.split('@')[0] || 'Command';
+  await _sb.from('incident_messages').insert([{ incident_id: incidentId, sender_name: name, sender_role: 'responder', message: msg }]);
+  selectIncident(incidentId);
+}
+
+function focusMap(lat, lng) {
+  showPage('command');
+  setTimeout(() => { if(cmdMap) cmdMap.setView([lat,lng],15); }, 100);
+}
+
+/* ============================================================
+   FULL INCIDENTS TABLE
+   ============================================================ */
+async function loadFullIncidents() {
+  const type     = document.getElementById('incTypeFilter').value;
+  const status   = document.getElementById('incStatusFilter').value;
+  const priority = document.getElementById('incPriorityFilter').value;
+  let q = _sb.from('incident_reports').select('*').order('priority').order('created_at',{ascending:false}).limit(100);
+  if (type)     q = q.eq('emergency_type', type);
+  if (status)   q = q.eq('status', status);
+  if (priority) q = q.eq('priority', parseInt(priority));
+  const { data } = await q;
+  allIncidents = data || [];
+  renderIncidentTable(allIncidents);
+}
+
+function filterIncidents() {
+  const q = document.getElementById('incSearch').value.toLowerCase();
+  const filtered = allIncidents.filter(d =>
+    (d.emergency_type||'').includes(q) ||
+    (d.description||'').toLowerCase().includes(q) ||
+    (d.location||'').toLowerCase().includes(q) ||
+    (d.reporter_name||'').toLowerCase().includes(q)
+  );
+  renderIncidentTable(filtered);
+}
+
+function renderIncidentTable(data) {
+  document.getElementById('incCount').textContent = `${data.length} records`;
+  const tbody = document.getElementById('incTableBody');
+  if (!data.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-3);">No incidents found</td></tr>'; return; }
+  tbody.innerHTML = data.map(d => `
+    <tr onclick="showPage('command');selectIncident('${d.id}');" ${d.id===selectedIncId?'class="selected"':''}>
+      <td><span class="p-dot p${d.priority||3}"></span> P${d.priority||3}</td>
+      <td>${ICONS[d.emergency_type]||'⚠️'} ${(d.emergency_type||'').replace(/_/g,' ')}</td>
+      <td class="td-ellipsis">${d.description||'—'}</td>
+      <td class="td-ellipsis">${d.location||'—'}</td>
+      <td>${d.reporter_name||'Anonymous'}</td>
+      <td><span class="badge badge-${d.status}">${d.status?.replace(/_/g,' ')}</span></td>
+      <td style="font-size:11px;color:var(--text-2);white-space:nowrap;">${timeAgo(d.created_at)}</td>
+      <td>
+        <div style="display:flex;gap:4px;">
+          <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();doUpdateStatus('${d.id}','resolved')">Resolve</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+/* ============================================================
+   TEAMS
+   ============================================================ */
+async function loadTeams() {
+  const { data } = await _sb.from('teams').select('*').order('name');
+  const grid = document.getElementById('teamsGrid');
+  if (!data?.length) { grid.innerHTML='<div class="empty-state"><div class="empty-icon">🚑</div><div class="empty-text">No teams found</div><div class="empty-sub">Add a team to get started.</div></div>'; return; }
+  grid.innerHTML = data.map(t => `
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title" style="gap:10px;">
+          <span style="font-size:22px;">${TEAM_ICONS[t.type]||'🚑'}</span>
+          <div>
+            <div>${t.name}</div>
+            <div style="font-size:11px;font-weight:400;color:var(--text-3);">${t.type.toUpperCase()}</div>
+          </div>
+        </div>
+        <span class="badge badge-${t.status}">${t.status}</span>
+      </div>
+      <div class="card-body">
+        <div class="capacity-bar" style="margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-2);margin-bottom:5px;">
+            <span>Active load</span>
+            <span>${t.current_load||0} / ${t.capacity}</span>
+          </div>
+          <div class="capacity-track">
+            <div class="capacity-fill" style="width:${Math.min(100,((t.current_load||0)/t.capacity)*100)}%;background:${(t.current_load||0)/t.capacity>0.7?'var(--danger)':'var(--primary)'}"></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="btn btn-success btn-sm" onclick="setTeamStatus('${t.id}','available')">Set Available</button>
+          <button class="btn btn-outline btn-sm" onclick="setTeamStatus('${t.id}','offline')">Set Offline</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+async function setTeamStatus(id, status) {
+  await _sb.from('teams').update({ status, current_load: status==='available'?0:undefined }).eq('id', id);
+  toast(`Team status updated to "${status}"`, 'success');
+  loadTeams();
+}
+
+async function submitAddTeam() {
+  const btn = document.getElementById('addTeamBtn');
+  const name = document.getElementById('tName').value.trim();
+  const type = document.getElementById('tType').value;
+  const cap  = parseInt(document.getElementById('tCap').value)||5;
+  if (!name) { toast('Team name is required.','warn'); return; }
+  btn.disabled = true; btn.textContent = 'Adding…';
+  const { error } = await _sb.from('teams').insert([{
+    name, type, capacity: cap, status: 'available',
+    latitude:  BASE[0] + (Math.random()*0.12-0.06),
+    longitude: BASE[1] + (Math.random()*0.12-0.06),
+  }]);
+  btn.disabled = false; btn.textContent = 'Add Team';
+  if (error) { toast('Failed: '+error.message,'error'); return; }
+  toast('Team added!','success');
+  closeModal('teamModal');
+  document.getElementById('tName').value = '';
+  loadTeams();
+}
+
+/* ============================================================
+   RESOURCES
+   ============================================================ */
+async function loadResources() {
+  const { data } = await _sb.from('resources').select('*').order('name');
+  const grid = document.getElementById('resourcesGrid');
+  if (!data?.length) { grid.innerHTML = '<div class="empty-state"><div class="empty-icon">🏥</div><div class="empty-text">No resources found</div><div class="empty-sub">Run the seed SQL from shared.js</div></div>'; return; }
+  grid.innerHTML = data.map(r => {
+    const pct = Math.min(100,(r.available_capacity/r.total_capacity)*100);
+    const fillColor = pct > 30 ? 'var(--success)' : pct > 10 ? 'var(--warn)' : 'var(--danger)';
+    return `
+    <div class="resource-card">
+      <div class="res-header">
+        <div class="res-icon">${r.type==='hospital'?'🏥':r.type==='shelter'?'🏠':'📦'}</div>
+        <div><div class="res-name">${r.name}</div><div class="res-type">${r.type}</div></div>
+      </div>
+      <div class="capacity-bar">
+        <div class="capacity-track"><div class="capacity-fill" style="width:${pct}%;background:${fillColor};"></div></div>
+        <div class="capacity-text"><span>${r.available_capacity} available</span><span>${r.total_capacity} total</span></div>
+      </div>
+      <div style="font-size:11px;color:var(--text-2);margin-top:8px;">📞 ${r.contact||'N/A'}</div>
+      <div style="display:flex;gap:6px;margin-top:10px;">
+        <button class="btn btn-outline btn-sm" onclick="adjustCapacity('${r.id}',${r.available_capacity}-1,${r.total_capacity})">−1</button>
+        <button class="btn btn-outline btn-sm" onclick="adjustCapacity('${r.id}',${r.available_capacity}+1,${r.total_capacity})">+1</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function adjustCapacity(id, newCap, max) {
+  if (newCap < 0 || newCap > max) return;
+  await _sb.from('resources').update({ available_capacity: newCap }).eq('id', id);
+  toast('Capacity updated','success');
+  loadResources();
+}
+
+/* ============================================================
+   AREA ALERTS
+   ============================================================ */
+async function loadAlerts() {
+  const { data } = await _sb.from('area_alerts').select('*').order('created_at',{ascending:false});
+  const el = document.getElementById('alertsTable');
+  if (!data?.length) { el.innerHTML='<div class="empty-state" style="padding:40px;"><div class="empty-icon">📡</div><div class="empty-text">No alerts yet</div></div>'; return; }
+  el.innerHTML = `<div class="table-wrapper"><table>
+    <thead><tr><th>Severity</th><th>Title</th><th>Area</th><th>Message</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
+    <tbody>${data.map(a=>`
+    <tr>
+      <td><span class="badge ${a.severity==='high'?'badge-pending':a.severity==='medium'?'badge-on_the_way':'badge-resolved'}">${a.severity}</span></td>
+      <td style="font-weight:600;">${a.title}</td>
+      <td>${a.area}</td>
+      <td class="td-ellipsis">${a.message}</td>
+      <td><span class="badge ${a.active?'badge-on_the_way':'badge-resolved'}">${a.active?'Active':'Inactive'}</span></td>
+      <td style="font-size:11px;color:var(--text-2);">${timeAgo(a.created_at)}</td>
+      <td>
+        <button class="btn btn-outline btn-sm" onclick="toggleAlert('${a.id}',${!a.active})">${a.active?'Deactivate':'Activate'}</button>
+      </td>
+    </tr>`).join('')}</tbody></table></div>`;
+}
+
+async function toggleAlert(id, active) {
+  await _sb.from('area_alerts').update({ active }).eq('id', id);
+  toast(`Alert ${active?'activated':'deactivated'}`, 'success');
+  loadAlerts();
+}
+
+async function submitBroadcast() {
+  const btn = document.getElementById('broadcastBtn');
+  const title = document.getElementById('bTitle').value.trim();
+  const msg   = document.getElementById('bMsg').value.trim();
+  const area  = document.getElementById('bArea').value.trim();
+  const sev   = document.getElementById('bSev').value;
+  if (!title||!msg||!area) { toast('Fill in all fields.','warn'); return; }
+  btn.disabled=true; btn.textContent='Broadcasting…';
+  const { error } = await _sb.from('area_alerts').insert([{ title, message:msg, area, severity:sev, active:true }]);
+  btn.disabled=false; btn.textContent='📡 Broadcast Now';
+  if (error) { toast('Failed: '+error.message,'error'); return; }
+  toast('Alert broadcast to all citizens!','success');
+  closeModal('broadcastModal');
+  ['bTitle','bMsg','bArea'].forEach(id=>document.getElementById(id).value='');
+  loadAlerts();
+  loadDashAlerts();
+}
+
+/* ============================================================
+   DASHBOARD HELPERS
+   ============================================================ */
+async function loadDashStats() {
+  const [incRes, teamRes] = await Promise.all([
+    _sb.from('incident_reports').select('status,priority').limit(500),
+    _sb.from('teams').select('status'),
+  ]);
+  const incs  = incRes.data  || [];
+  const teams = teamRes.data || [];
+
+  document.getElementById('sCritical').textContent    = incs.filter(i=>i.priority===1&&i.status!=='resolved').length;
+  document.getElementById('sActive').textContent      = incs.filter(i=>['assigned','on_the_way'].includes(i.status)).length;
+  document.getElementById('sPending').textContent     = incs.filter(i=>i.status==='pending').length;
+  document.getElementById('sResolved').textContent    = incs.filter(i=>i.status==='resolved').length;
+  document.getElementById('sTeamsAvail').textContent  = teams.filter(t=>t.status==='available').length;
+
+  const pendingCount = incs.filter(i=>i.status==='pending').length;
+  const badge = document.getElementById('navBadge');
+  badge.style.display = pendingCount > 0 ? '' : 'none';
+  badge.textContent = pendingCount;
+}
+
+async function loadTypeChart() {
+  const { data } = await _sb.from('incident_reports').select('emergency_type').limit(500);
+  if (!data) return;
+  const counts = {};
+  data.forEach(d => { counts[d.emergency_type] = (counts[d.emergency_type]||0)+1; });
+  const max = Math.max(...Object.values(counts), 1);
+  const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const html = sorted.map(([type,count])=>`
+    <div class="bar-row">
+      <div class="bar-label">${ICONS[type]||'⚠️'} ${type?.replace(/_/g,' ')}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(count/max)*100}%;"></div></div>
+      <div class="bar-count">${count}</div>
+    </div>`).join('');
+  ['typeChart','analyticsTypeChart'].forEach(id => { const el=document.getElementById(id); if(el)el.innerHTML=html||'<div class="empty-sub">No data yet</div>'; });
+}
+
+async function loadDashAlerts() {
+  const { data } = await _sb.from('area_alerts').select('*').eq('active',true).order('created_at',{ascending:false}).limit(4);
+  const el = document.getElementById('dashAlerts');
+  if (!data?.length) { el.innerHTML='<div style="padding:16px;font-size:12px;color:var(--text-3);">No active alerts.</div>'; return; }
+  el.innerHTML = data.map(a=>`
+    <div style="display:flex;align-items:flex-start;gap:10px;padding:12px 18px;border-bottom:1px solid var(--border);">
+      <div style="width:8px;height:8px;border-radius:50%;background:${a.severity==='high'?'var(--danger)':a.severity==='medium'?'var(--warn)':'var(--success)'};margin-top:4px;flex-shrink:0;"></div>
+      <div>
+        <div style="font-size:13px;font-weight:600;">${a.title}</div>
+        <div style="font-size:11px;color:var(--text-2);margin-top:2px;">${a.area} · ${timeAgo(a.created_at)}</div>
+      </div>
+    </div>`).join('');
+}
+
+async function loadSOSFeed() {
+  const { data } = await _sb.from('sos_alerts').select('*').order('created_at',{ascending:false}).limit(6);
+  const el = document.getElementById('sosFeed');
+  if (!data?.length) { el.innerHTML='<div style="padding:16px;font-size:12px;color:var(--text-3);">No SOS alerts.</div>'; return; }
+  el.innerHTML = data.map(s=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border);">
+      <span style="font-size:16px;">🆘</span>
+      <div style="flex:1;">
+        <div style="font-size:12px;font-weight:600;color:var(--danger);">${s.type?.toUpperCase()||'SOS ALERT'}</div>
+        <div style="font-size:10px;color:var(--text-3);">${timeAgo(s.created_at)}</div>
+      </div>
+      <span class="badge ${s.status==='active'?'badge-on_the_way':'badge-resolved'}">${s.status}</span>
+    </div>`).join('');
+}
+
+async function loadAnalytics() {
+  const container = document.getElementById('analyticsStats');
+  if (!container) return; // Removed from UI
+  const { data } = await _sb.from('incident_reports').select('*').limit(500);
+  const { data: teams } = await _sb.from('teams').select('status');
+  if (!data) return;
+
+  // stats cards
+  document.getElementById('analyticsStats').innerHTML = `
+    <div class="stat-card blue"><div class="stat-top"><span class="stat-icon">📊</span></div><div class="stat-value">${data.length}</div><div class="stat-label">Total Incidents</div></div>
+    <div class="stat-card green"><div class="stat-top"><span class="stat-icon">✅</span></div><div class="stat-value">${data.filter(d=>d.status==='resolved').length}</div><div class="stat-label">Resolved</div></div>
+    <div class="stat-card warn"><div class="stat-top"><span class="stat-icon">⏳</span></div><div class="stat-value">${data.filter(d=>d.status==='pending').length}</div><div class="stat-label">Pending</div></div>
+    <div class="stat-card red"><div class="stat-top"><span class="stat-icon">🔴</span></div><div class="stat-value">${data.filter(d=>d.priority===1).length}</div><div class="stat-label">Critical (P1)</div></div>`;
+
+  // type chart
+  const typeCounts = {}; data.forEach(d=>{ typeCounts[d.emergency_type]=(typeCounts[d.emergency_type]||0)+1; });
+  const maxT = Math.max(...Object.values(typeCounts),1);
+  document.getElementById('analyticsTypeChart').innerHTML = Object.entries(typeCounts).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([t,c])=>`
+    <div class="bar-row"><div class="bar-label">${ICONS[t]||'⚠️'} ${t?.replace(/_/g,' ')}</div>
+    <div class="bar-track"><div class="bar-fill" style="width:${(c/maxT)*100}%;"></div></div>
+    <div class="bar-count">${c}</div></div>`).join('');
+
+  // status chart
+  const stCounts = {}; data.forEach(d=>{ stCounts[d.status]=(stCounts[d.status]||0)+1; });
+  const maxS = Math.max(...Object.values(stCounts),1);
+  const stColors = { pending:'var(--warn)', assigned:'var(--primary)', on_the_way:'#F97316', resolved:'var(--success)' };
+  document.getElementById('analyticsStatusChart').innerHTML = Object.entries(stCounts).map(([s,c])=>`
+    <div class="bar-row"><div class="bar-label">${s.replace(/_/g,' ')}</div>
+    <div class="bar-track"><div class="bar-fill" style="width:${(c/maxS)*100}%;background:${stColors[s]||'var(--primary)'};"></div></div>
+    <div class="bar-count">${c}</div></div>`).join('');
+
+  // activity table
+  document.getElementById('activityTable').innerHTML = data.slice(0,20).map(d=>`
+    <tr>
+      <td><span class="p-dot p${d.priority||3}"></span> P${d.priority||3}</td>
+      <td>${ICONS[d.emergency_type]||'⚠️'} ${(d.emergency_type||'').replace(/_/g,' ')}</td>
+      <td class="td-ellipsis">${d.location||'—'}</td>
+      <td><span class="badge badge-${d.status}">${d.status?.replace(/_/g,' ')}</span></td>
+      <td style="font-size:11px;color:var(--text-2);">${timeAgo(d.created_at)}</td>
+    </tr>`).join('');
+}
+
+/* ============================================================
+   REFRESH ALL
+   ============================================================ */
+function refreshAll() {
+  loadDashStats();
+  loadTypeChart();
+  loadDashAlerts();
+  loadSOSFeed();
+  if (cmdMapInited) { loadCmdMapData(); loadCmdList(); }
+  const activePage = document.querySelector('.page.active')?.id?.replace('page-','');
+  if (activePage === 'incidents') loadFullIncidents();
+  if (activePage === 'teams')     loadTeams();
+  if (activePage === 'resources') loadResources();
+  if (activePage === 'alerts')    loadAlerts();
+  if (activePage === 'analytics') loadAnalytics();
+}
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.querySelector(`.nav-item[data-page="${name}"]`)?.classList.add('active');
+  document.getElementById('topbarTitle').textContent = {
+    dashboard:'Dashboard', command:'Command Center',
+    incidents:'Incidents', teams:'Response Teams',
+    resources:'Resources', alerts:'Area Alerts', analytics:'Analytics',
+  }[name] || name;
+
+  if (name === 'dashboard') {
+    setTimeout(() => { if (dashMap) dashMap.invalidateSize(); }, 300);
+  }
+  if (name === 'command') { 
+    initCmdMap(); 
+    loadCmdList(); 
+    setTimeout(() => { if (cmdMap) cmdMap.invalidateSize(); }, 300);
+  }
+  if (name === 'incidents') loadFullIncidents();
+  if (name === 'teams')     loadTeams();
+  if (name === 'resources') loadResources();
+  if (name === 'alerts')    loadAlerts();
+  if (name === 'analytics') loadAnalytics();
+
+  // close sidebar on mobile
+  if (window.innerWidth <= 900) document.getElementById('sidebar').classList.remove('open');
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+/* ============================================================
+   MODALS
+   ============================================================ */
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(el =>
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); })
+);
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+});
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+function toast(msg, type='info') {
+  const container = document.getElementById('toastContainer');
+  const icons = { success:'✅', error:'❌', warn:'⚠️', info:'ℹ️' };
+  const el = document.createElement('div');
+  el.className = `toast toast-${type}`;
+  el.innerHTML = `
+    <div class="toast-icon">${icons[type]||'ℹ️'}</div>
+    <div class="toast-body">
+      <div class="toast-title">${type.charAt(0).toUpperCase()+type.slice(1)}</div>
+      <div class="toast-msg">${msg}</div>
+    </div>
+    <button class="toast-close" onclick="this.parentElement.remove()">✕</button>`;
+  container.appendChild(el);
+  setTimeout(() => { el.style.opacity='0'; el.style.transition='opacity 0.3s'; setTimeout(()=>el.remove(),300); }, 4000);
+}
+
+/* ============================================================
+   CLOCK
+   ============================================================ */
+function startClock() {
+  const el = document.getElementById('clock');
+  setInterval(() => { el.textContent = new Date().toLocaleTimeString('en-IN',{hour12:false}); }, 1000);
+}
+
+/* ============================================================
+   UTILITY
+   ============================================================ */
+function timeAgo(ts) {
+  const s = Math.round((Date.now()-new Date(ts))/1000);
+  if (s < 60) return 'just now';
+  if (s < 3600) return `${Math.floor(s/60)}m ago`;
+  if (s < 86400) return `${Math.floor(s/3600)}h ago`;
+  return `${Math.floor(s/86400)}d ago`;
+}
+</script>
+</body>
+</html>
