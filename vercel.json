@@ -1,10 +1,20 @@
 {
   "version": 2,
   "builds": [
-    { "src": "api/*.py", "use": "@vercel/python" }
+    { "src": "api/sos.py", "use": "@vercel/python" },
+    { "src": "api/incidents.py", "use": "@vercel/python" },
+    { "src": "api/dispatch.py", "use": "@vercel/python" },
+    { "src": "api/gps.py", "use": "@vercel/python" },
+    { "src": "api/auth.py", "use": "@vercel/python" },
+    { "src": "api/volunteers.py", "use": "@vercel/python" }
   ],
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "api/$1.py" },
+    { "source": "/api/sos(.*)", "destination": "api/sos.py" },
+    { "source": "/api/incidents(.*)", "destination": "api/incidents.py" },
+    { "source": "/api/dispatch(.*)", "destination": "api/dispatch.py" },
+    { "source": "/api/gps(.*)", "destination": "api/gps.py" },
+    { "source": "/api/auth(.*)", "destination": "api/auth.py" },
+    { "source": "/api/volunteers(.*)", "destination": "api/volunteers.py" },
     { "source": "/admin", "destination": "/admin.html" },
     { "source": "/citizen", "destination": "/citizen.html" }
   ],
