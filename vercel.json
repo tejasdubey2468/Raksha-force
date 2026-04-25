@@ -1,12 +1,17 @@
 {
   "version": 2,
+  "builds": [
+    { "src": "api/*.py", "use": "@vercel/python" },
+    { "src": "*.html", "use": "@vercel/static" },
+    { "src": "assets/**", "use": "@vercel/static" }
+  ],
   "rewrites": [
-    { "source": "/api/sos(.*)", "destination": "/api/sos.py" },
-    { "source": "/api/incidents(.*)", "destination": "/api/incidents.py" },
-    { "source": "/api/dispatch(.*)", "destination": "/api/dispatch.py" },
-    { "source": "/api/gps(.*)", "destination": "/api/gps.py" },
-    { "source": "/api/auth(.*)", "destination": "/api/auth.py" },
-    { "source": "/api/volunteers(.*)", "destination": "/api/volunteers.py" },
+    { "source": "/api/sos(.*)", "destination": "api/sos.py" },
+    { "source": "/api/incidents(.*)", "destination": "api/incidents.py" },
+    { "source": "/api/dispatch(.*)", "destination": "api/dispatch.py" },
+    { "source": "/api/gps(.*)", "destination": "api/gps.py" },
+    { "source": "/api/auth(.*)", "destination": "api/auth.py" },
+    { "source": "/api/volunteers(.*)", "destination": "api/volunteers.py" },
     { "source": "/admin", "destination": "/admin.html" },
     { "source": "/citizen", "destination": "/citizen.html" }
   ],
