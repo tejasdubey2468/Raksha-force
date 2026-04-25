@@ -41,10 +41,6 @@
       ]
     }
   ],
-  "env": {
-    "SUPABASE_URL": "@supabase_url",
-    "SUPABASE_SERVICE_KEY": "@supabase_service_key",
-    "SUPABASE_JWT_SECRET": "@supabase_jwt_secret",
-    "ADMIN_REGISTRATION_SECRET": "@admin_registration_secret"
-  }
+    }
+  ]
 }
