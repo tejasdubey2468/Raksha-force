@@ -589,6 +589,11 @@ tbody td { padding: 14px 16px; font-size: 14px; color: var(--text); vertical-ali
           <option value="hi">हिन्दी</option>
           <option value="mr">मराठी</option>
       </select>
+      <div class="topbar-chips">
+        <div class="chip chip-live">LIVE</div>
+        <div class="chip chip-db chip-db-ok" id="dbChip"><span id="dbStatus">Connecting…</span></div>
+        <div class="topbar-clock" id="clock">--:--:--</div>
+      </div>
       <div class="topbar-actions">
         <button class="btn btn-outline btn-sm" onclick="refreshAll()">↻ Refresh</button>
         <a href="citizen.html" class="btn btn-outline btn-sm">👤 Citizen View</a>
@@ -913,31 +918,44 @@ function initSupabase() {
 
 function setDBStatus(ok) {
   const chip = document.getElementById('dbChip');
-  chip.className = 'chip ' + (ok ? 'chip-db-ok' : 'chip-db-err');
-  document.getElementById('dbStatus').textContent = ok ? 'Supabase Connected' : 'DB Error';
+  const statusEl = document.getElementById('dbStatus');
+  if (chip) chip.className = 'chip chip-db ' + (ok ? 'chip-db-ok' : 'chip-db-err');
+  if (statusEl) statusEl.textContent = ok ? 'Supabase Connected' : 'DB Error';
 }
 
 async function checkSession() {
-  const { data: { session } } = await _sb.auth.getSession();
-  if (session?.user) {
-    currentUser = session.user;
-    // Check role
-    const { data: profile } = await _sb.from('profiles').select('role').eq('id', currentUser.id).single();
-    if (profile && profile.role === 'admin') {
-      bootApp();
-    } else {
-      toast('Access denied. Admin role required.', 'error');
-      setTimeout(() => window.location.href = 'citizen.html', 2000);
+  try {
+    const { data: { session } } = await _sb.auth.getSession();
+    if (session?.user) {
+      currentUser = session.user;
+      // Check role
+      try {
+        const { data: profile } = await _sb.from('profiles').select('role').eq('id', currentUser.id).single();
+        if (profile && profile.role === 'admin') {
+          bootApp();
+          return;
+        } else {
+          toast('Access denied. Admin role required.', 'error');
+          setTimeout(() => window.location.href = 'citizen.html', 2000);
+          return;
+        }
+      } catch (profileErr) {
+        console.warn('Profile check failed, showing auth screen:', profileErr);
+        // Fall through to show auth screen
+      }
     }
+  } catch (sessionErr) {
+    console.warn('Session check failed:', sessionErr);
+    // Fall through to show auth screen
+  }
+
+  // If no session or errors, check for guest mode in URL
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('guest') === 'true') {
+    skipAuth();
   } else {
-    // If no session, check for guest mode in URL
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('guest') === 'true') {
-      skipAuth();
-    } else {
-      // Show auth screen (don't redirect to index yet to allow guest login here)
-      document.getElementById('authScreen').style.display = 'flex';
-    }
+    // Show auth screen
+    document.getElementById('authScreen').style.display = 'flex';
   }
 }
 
@@ -1843,6 +1861,8 @@ function toast(msg, type='info') {
    ============================================================ */
 function startClock() {
   const el = document.getElementById('clock');
+  if (!el) return;
+  el.textContent = new Date().toLocaleTimeString('en-IN',{hour12:false});
   setInterval(() => { el.textContent = new Date().toLocaleTimeString('en-IN',{hour12:false}); }, 1000);
 }
 

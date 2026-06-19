@@ -2495,14 +2495,20 @@
       await initSB();
 
       // Auto-redirect if already logged in
-      const { data: { session } } = await sb.auth.getSession();
-      if (session?.user) {
-        const { data: profile } = await sb.from('profiles').select('role').eq('id', session.user.id).single();
-        if (profile && profile.role === 'admin') {
-          window.location.href = 'admin.html';
-        } else {
-          window.location.href = 'citizen.html';
+      try {
+        const { data: { session } } = await sb.auth.getSession();
+        if (session?.user) {
+          const { data: profile } = await sb.from('profiles').select('role').eq('id', session.user.id).single();
+          if (profile && profile.role === 'admin') {
+            window.location.href = 'admin.html';
+            return; // stop further init since we're redirecting
+          } else {
+            window.location.href = 'citizen.html';
+            return; // stop further init since we're redirecting
+          }
         }
+      } catch (e) {
+        console.warn('Session check failed, continuing as guest:', e);
       }
 
       fetchFeed();
