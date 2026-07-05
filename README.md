@@ -1,6 +1,6 @@
 # RAKSHA-FORCE
 
-Single-folder RAKSHA-FORCE platform merged from your frontend and backend codebases.
+Single-folder RAKSHA-FORCE platform merged from frontend and backend codebases.
 
 ## Structure
 
